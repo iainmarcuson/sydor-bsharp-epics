@@ -1,0 +1,11 @@
+# Database for BSharp PID
+
+### TODO Not that PIDX may be replaced with PID$(CHAN) in the future for modularity
+### Some of the work may be accopmplished by #include-ing a module file with the String parameter as a #define
+
+record(mbbi, "$(P)$(R)PIDX_KP")
+	     field(DESC, "PID P term")
+	     field(DTYP, "asynInt32")
+	     field(OUT, "@asyn($(PORT) 0)PIDX_KP")
+	     field(VAL, "10000")
+	     field(PINI, "YES")
