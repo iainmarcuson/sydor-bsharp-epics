@@ -14,9 +14,11 @@ RECV_FULL = 1;
 RECV_FLUSH = 2;                 # If an erroneous packet is detected, signal to flush the buffer
 
 FIFO_DIRTY = False;
+desync_packets = 0;
 
 def bsharp_all_recv(in_bytes):
     global FIFO_DIRTY;
+    global desync_packets;
     ###if len(in_bytes) >= 3:
     ###    print("all_recv: {:2x} {:2x} {:2x} {:2x}".format(in_bytes[0], in_bytes[1], in_bytes[2], in_bytes[3]));
     if in_bytes.find(b'bb') == 0: # Data
@@ -84,6 +86,7 @@ def bsharp_all_recv(in_bytes):
         if (in_bytes.find(b'bs')==0) or (in_bytes.find(b'rr')==0) or (in_bytes.find(b'bc')==0) or (in_bytes.find(b'wr')==0):
             pass;               # A valid command
         else:                   # Erroneos data, so flush
+            desync_packets = desync_packets+1; # Note a desynchronization
             return (RECV_FLUSH, b'');
         cmd_end = in_bytes.find(b'\r\n'); 
 
@@ -205,6 +208,9 @@ try:
         if (curr_minutes != old_minutes):
             old_minutes = curr_minutes;
             print("In: {}\tOut: {}".format(data_in_count, data_out_count));
+            if (desync_packets > 0):
+                print("Desync count: {}".format(desync_packets));
+                desync_packets = 0;
             data_in_count = 0;
             data_out_count = 0;
 
@@ -274,7 +280,7 @@ try:
             else:                         # Full received packet
                 from_bsharp_socket = from_bsharp_socket[len(read_bytes):]; # Strip the valid data from the queue
                 FIFO_DIRTY = True; # FIFO modified, so set dirty
-                if (chr(read_bytes[0]) == 'B') and (read_bytes[1] == 1):
+                if (read_bytes[0] == b'B') and (read_bytes[1] == 1):
                     data_pending = DATA_CURR;
                     data_in_count = data_in_count +1;
                 elif (read_bytes.find(b'bb') == 0):
