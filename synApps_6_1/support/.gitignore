@@ -1,0 +1,5 @@
+**/lib
+**/bin
+quadEM-R9-2-1/iocBoot/**/autosave
+**/*.a
+**/*.so

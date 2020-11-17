@@ -6,7 +6,7 @@ import traceback
 import time
 
 packet_count = 0;
-CMD_LEN = 128;                  # Maximum length of command to try to filter out spurious commands
+CMD_LEN = 32;                  # Maximum length of command to try to filter out.  Actual max for a command is 25, but add a litle padding.
 
 #Returns a status code and a byte array corresponding to a message
 RECV_PARTIAL = 0;
@@ -79,7 +79,14 @@ def bsharp_all_recv(in_bytes):
         #    command_hex = command_hex + "{:2x} ".format(curr_byte);
         #print(command_hex);
         FIFO_DIRTY = False;
-        cmd_end = in_bytes.find(b'\r\n'); # XXX TODO Handle partial command by looking at total length
+        # Check to see if we have a valid response.  Assume no whitespace
+        # XXX Assuming no whitespace
+        if (in_bytes.find(b'bs')==0) or (in_bytes.find(b'rr')==0) or (in_bytes.find(b'bc')==0) or (in_bytes.find(b'wr')==0):
+            pass;               # A valid command
+        else:                   # Erroneos data, so flush
+            return (RECV_FLUSH, b'');
+        cmd_end = in_bytes.find(b'\r\n'); 
+
         if (cmd_end>0) and (cmd_end<CMD_LEN):
             return (RECV_FULL, in_bytes[0:cmd_end+2]);
         elif len(in_bytes)<CMD_LEN:
@@ -252,8 +259,8 @@ try:
                 from_bsharp_socket = from_bsharp_socket + curr_bsharp;
 
                 # XXX FIXME This is to flush the buffer if we get out of sync.
-                # The number should probably change
-                if (len(from_bsharp_socket)) > 16384:
+                # The number should probably change.
+                if (len(from_bsharp_socket)) > (440*2+32): # Two data transmissions plus a command
                     from_bsharp_socket = b'';
                 FIFO_DIRTY = True;
         # Can only handle one packet per loop to avoid overwriting responses from the socket for the writable below
