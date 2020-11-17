@@ -523,7 +523,7 @@ void drvBS_EM::readThread(void)
 		(pingPong == PhaseBoth)) {
 	      for (i=0; i<4; i++) {
 		//12 bytes offset of payload, so 3 ints
-		data[i] = ((data_int[j*4+i+3])-ADC_OFFSET)*scaleFactor_;
+		data[i] = (((signed)(data_int[j*4+i+3]))-((signed)ADC_OFFSET))*scaleFactor_;
   //data[i] = (((signed int) data_int[j*4+i])-((signed int) ADC_OFFSET)) * scaleFactor_;
 		///
 		//data[i] = (total_num++)*1.0;
