@@ -16,6 +16,9 @@ RECV_FLUSH = 2;                 # If an erroneous packet is detected, signal to 
 FIFO_DIRTY = False;
 desync_packets = 0;
 
+DEFAULT_SELECT = 0.02;
+select_timeout = DEFAULT_SELECT;
+
 def bsharp_all_recv(in_bytes):
     global FIFO_DIRTY;
     global desync_packets;
@@ -202,8 +205,10 @@ try:
 
         
         
-        read_list, write_list, error_list = select.select(read_list, write_list, [], 0.02);
+        read_list, write_list, error_list = select.select(read_list, write_list, [], select_timeout);
 
+        select_timeout = DEFAULT_SELECT; # Always reset to default, as sometimes we might do a fast timeout;
+        
         curr_minutes = int(time.time()/60);
         if (curr_minutes != old_minutes):
             old_minutes = curr_minutes;
@@ -277,17 +282,24 @@ try:
             elif read_status == RECV_FLUSH:
                 from_bsharp_socket = b''; # Need to flush the data
                 FIFO_DIRTY = False;       # No need to print and empty FIFO
+                select_timeout = 0.001;   # If packets are too rapid, clear quickly
             else:                         # Full received packet
                 from_bsharp_socket = from_bsharp_socket[len(read_bytes):]; # Strip the valid data from the queue
                 FIFO_DIRTY = True; # FIFO modified, so set dirty
+                ###
+                print("Got a full packet");
                 if (read_bytes[0] == b'B') and (read_bytes[1] == 1):
                     data_pending = DATA_CURR;
                     data_in_count = data_in_count +1;
+                    ###
+                    print("Got a B1");
                 elif (read_bytes.find(b'bb') == 0):
                     data_pending = DATA_CURR;
                     data_in_count = data_in_count + 1;
                 else:           # A command
                     data_pending = DATA_CMD;
+                    ###
+                    print("Got a command");
                     try:
                         print("Received B# command response: {}".format(read_bytes.decode()));
                     except:

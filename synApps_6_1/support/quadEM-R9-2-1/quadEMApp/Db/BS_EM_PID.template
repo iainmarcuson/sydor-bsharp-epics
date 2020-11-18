@@ -3,9 +3,247 @@
 ### TODO Not that PIDX may be replaced with PID$(CHAN) in the future for modularity
 ### Some of the work may be accopmplished by #include-ing a module file with the String parameter as a #define
 
-record(mbbi, "$(P)$(R)PIDX_KP")
-	     field(DESC, "PID P term")
-	     field(DTYP, "asynInt32")
+### PID X Terms
+
+record(ao, "$(P)$(R)PIDX_SP")
+{
+	field(DESC, "PID X Setpoint")
+	field(DTYP, "asynFloat64")
+	field(OUT, "@asyn($(PORT) 0)PIDX_SP")
+	field(DRVL, "0.0")
+	field(DRVL, "1.0")
+	field(VAL, "0.5")
+	field(PINI, "YES")
+}
+
+record(ai, "$(P)$(R)PIDX_SP_RBV")
+{
+	field(DESC, "PID X Setpoint RBV")
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT) 0)PIDX_SP")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)PIDX_KP")
+{
+	     field(DESC, "PID X P term")
+	     field(DTYP, "asynFloat64")
 	     field(OUT, "@asyn($(PORT) 0)PIDX_KP")
 	     field(VAL, "10000")
-	     field(PINI, "YES")
+	     field(PINI, "YES") 
+}
+
+record(ai, "$(P)$(R)PIDX_KP_RBV")
+{
+	   field(DESC, "PID X P RBV")
+	   field(DTYP, "asynFloat64")
+	   field(INP, "@asyn($(PORT) 0)PIDX_KP")
+	   field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)PIDX_KI")
+{
+	     field(DESC, "PID X I term")
+	     field(DTYP, "asynFloat64")
+	     field(OUT, "@asyn($(PORT) 0)PIDX_KI")
+	     field(VAL, "10000")
+	     field(PINI, "YES") 
+}
+
+record(ai, "$(P)$(R)PIDX_KI_RBV")
+{
+	   field(DESC, "PID X I RBV")
+	   field(DTYP, "asynFloat64")
+	   field(INP, "@asyn($(PORT) 0)PIDX_KI")
+	   field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)PIDX_KD")
+{
+	     field(DESC, "PID X D term")
+	     field(DTYP, "asynFloat64")
+	     field(OUT, "@asyn($(PORT) 0)PIDX_KD")
+	     field(VAL, "10000")
+	     field(PINI, "YES") 
+}
+
+record(ai, "$(P)$(R)PIDX_KD_RBV")
+{
+	   field(DESC, "PID X DD RBV")
+	   field(DTYP, "asynFloat64")
+	   field(INP, "@asyn($(PORT) 0)PIDX_KPD")
+	   field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)PIDX_MV")
+{
+	field(DESC, "PID X Max Volts")
+	field(DTYP, "asynFloat64")
+	field(OUT, "@asyn($(PORT) 0)PIDX_MAXV")
+	field(VAL, "50000")
+	field(PINI, "YES")
+}
+
+record(ai, "$(P)$(R)PIDX_MV_RBV")
+{
+	field(DESC, "PID X Max Volts")
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT) 0)PIDX_MAXV")
+	field(SCAN, "I/O Intr")
+}
+
+### PID Y Terms
+
+record(ao, "$(P)$(R)PIDY_SP")
+{
+	field(DESC, "PID Y Setpoint")
+	field(DTYP, "asynFloat64")
+	field(OUT, "@asyn($(PORT) 0)PIDY_SP")
+	field(VAL, "0.5")
+	field(PINI, "YES")
+}
+
+record(ai, "$(P)$(R)PIDY_SP_RBV")
+{
+	field(DESC, "PID Y Setpoint RBV")
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT) 0)PIDY_SP")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)PIDY_KP")
+{
+	     field(DESC, "PID Y P term")
+	     field(DTYP, "asynFloat64")
+	     field(OUT, "@asyn($(PORT) 0)PIDY_KP")
+	     field(VAL, "10000")
+	     field(PINI, "YES") 
+}
+
+record(ai, "$(P)$(R)PIDY_KP_RBV")
+{
+	   field(DESC, "PID Y P RBV")
+	   field(DTYP, "asynFloat64")
+	   field(INP, "@asyn($(PORT) 0)PIDY_KP")
+	   field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)PIDY_KI")
+{
+	     field(DESC, "PID Y I term")
+	     field(DTYP, "asynFloat64")
+	     field(OUT, "@asyn($(PORT) 0)PIDY_KI")
+	     field(VAL, "10000")
+	     field(PINI, "YES") 
+}
+
+record(ai, "$(P)$(R)PIDY_KI_RBV")
+{
+	   field(DESC, "PID Y I RBV")
+	   field(DTYP, "asynFloat64")
+	   field(INP, "@asyn($(PORT) 0)PIDY_KI")
+	   field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)PIDY_KD")
+{
+	     field(DESC, "PID Y D term")
+	     field(DTYP, "asynFloat64")
+	     field(OUT, "@asyn($(PORT) 0)PIDY_KD")
+	     field(VAL, "10000")
+	     field(PINI, "YES") 
+}
+
+record(ai, "$(P)$(R)PIDY_KD_RBV")
+{
+	   field(DESC, "PID Y D RBV")
+	   field(DTYP, "asynFloat64")
+	   field(INP, "@asyn($(PORT) 0)PIDY_KPD")
+	   field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)PIDY_MV")
+{
+	field(DESC, "PID Y Max Volts")
+	field(DTYP, "asynFloat64")
+	field(OUT, "@asyn($(PORT) 0)PIDY_MAXV")
+	field(VAL, "50000")
+	field(PINI, "YES")
+}
+
+record(ai, "$(P)$(R)PIDY_MV_RBV")
+{
+	field(DESC, "PID Y Max Volts")
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT) 0)PIDY_MAXV")
+	field(SCAN, "I/O Intr")
+}
+
+# General PID PVs
+
+record(mbbo, "$(P)$(R)PID_On")
+{
+	field(DESC, "PID Enable")
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT) 0)PID_ON")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "On")
+	field(ONVL, "1")
+	field(VAL, "0")
+	field(PINI, "YES")
+}
+
+record(mbbo, "$(P)$(R)PID_On_RBV")
+{
+	field(DESC, "PID Enable")
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT) 0)PID_ON")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "On")
+	field(ONVL, "1")
+	field(SCAN, "I/O Intr")
+}
+
+record(ao, "$(P)$(R)PID_Cut")
+{
+	field(DESC, "PID Cutout Threshold")
+	field(DTYP, "asynFloat64")
+	field(OUT, "@asyn($(PORT) 0)PID_CUT")
+	field(VAL, "0.9")
+	field(PINI, "YES")
+}
+
+record(ai, "$(P)$(R)PIDY_Cut_RBV")
+{
+	field(DESC, "PID Cutout Threshold")
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT) 0)PID_CUT")
+	field(SCAN, "I/O Intr")
+}
+
+record(mbbo, "$(P)$(R)PID_ReEn")
+{
+	field(DESC, "PID Re-enable")
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT) 0)PID_RE")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "On")
+	field(ONVL, "1")
+	field(VAL, "0")
+	field(PINI, "YES")
+}
+
+record(mbbo, "$(P)$(R)PID_ReEn_RBV")
+{
+	field(DESC, "PID Re-enable")
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT) 0)PID_RE")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "On")
+	field(ONVL, "1")
+	field(SCAN, "I/O Intr")
+}
