@@ -17,6 +17,7 @@ DB += NSLS_EM.template
 DB += NSLS2_EM.template
 DB += NSLS2_DAC.template
 DB += TetrAMM.template
+DB += BS_EM_PID.template
 DB += quadEM.template
 DB += quadEM_TimeSeries.template
 
@@ -27,4 +28,3 @@ DB += quadEM_TimeSeries.template
 include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
-

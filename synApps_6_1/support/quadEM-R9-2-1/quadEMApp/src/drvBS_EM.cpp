@@ -150,6 +150,9 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 	fflush(stdout);
       }
 
+    //Create the parameters for use with PID
+    createParam(P_PIDEnableString, asynParamInt32, &P_FdbkEnable);
+    
        
     acquiring_ = 0;
     readingActive_ = 0;
@@ -537,7 +540,49 @@ void drvBS_EM::readThread(void)
     }
 }
 
+/** Functions to handle writing of parameters */
+asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
+{
+  int function = pasynUser->reason;
+  int status = asynSuccess;
+  int channel;
+  const char *paramName;
+  const char *functionName = "writeInt32";
 
+  getAddress(pasynUser, &channel);
+
+  /* Set the parameter in the parameter library. */
+  status |= setIntegerParam(channel, function, value);
+
+  // Fetch the parameter string name
+  getParamName(function, &paramName);
+
+  printf("In writeInt32()\n");
+  if (function == P_FdbkEnable)
+    {
+      printf("Feedback enable: value %d\n", value);
+      epicsSnprintf(outString_, sizeof(outString_), "wr 220 %d\r\n", value);
+      status = writeReadMeter();
+    }
+  else				// Assume function not a BSharp one
+    {
+      drvQuadEM::writeInt32(pasynUser, value);
+    }
+
+  // Do callbacker for higher layers
+  status = (asynStatus) callParamCallbacks();
+
+  //TODO FIXME Handle status codes
+  return (asynStatus)status;
+}
+
+// TODO Expand this
+asynStatus drvBS_EM::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
+{
+  return (asynStatus)drvQuadEM::writeFloat64(pasynUser, value);
+}
+
+					     
 /** Starts and stops the electrometer.
   * \param[in] value 1 to start the electrometer, 0 to stop it.
   */

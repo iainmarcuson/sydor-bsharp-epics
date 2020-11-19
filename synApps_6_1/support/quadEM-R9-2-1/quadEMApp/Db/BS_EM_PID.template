@@ -71,7 +71,7 @@ record(ai, "$(P)$(R)PIDX_KD_RBV")
 {
 	   field(DESC, "PID X DD RBV")
 	   field(DTYP, "asynFloat64")
-	   field(INP, "@asyn($(PORT) 0)PIDX_KPD")
+	   field(INP, "@asyn($(PORT) 0)PIDX_KD")
 	   field(SCAN, "I/O Intr")
 }
 
@@ -189,7 +189,7 @@ record(mbbo, "$(P)$(R)PID_On")
 	field(ZRST, "Off")
 	field(ZRVL, "0")
 	field(ONST, "On")
-	field(ONVL, "1")
+	field(ONVL, "4")
 	field(VAL, "0")
 	field(PINI, "YES")
 }
@@ -202,7 +202,7 @@ record(mbbo, "$(P)$(R)PID_On_RBV")
 	field(ZRST, "Off")
 	field(ZRVL, "0")
 	field(ONST, "On")
-	field(ONVL, "1")
+	field(ONVL, "4")
 	field(SCAN, "I/O Intr")
 }
 

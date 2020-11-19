@@ -18,6 +18,7 @@ asynSetTraceIOMask("TCP_Data_$(PORT)", 0, 2)
 #asynSetTraceMask("TCP_Data_$(PORT)", 0, 9)
 
 dbLoadRecords("$(QUADEM)/db/$(TEMPLATE).template", "P=$(PREFIX), R=$(RECORD), CARD=0, MODULE_ID=$(MODULE_ID), PORT=$(PORT),ADDR=0,TIMEOUT=1")
+dbLoadRecords("$(QUADEM)/db/BS_EM_PID.template", "P=$(PREFIX), R=$(RECORD), PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
 < $(QUADEM)/iocBoot/commonPlugins.cmd
 
