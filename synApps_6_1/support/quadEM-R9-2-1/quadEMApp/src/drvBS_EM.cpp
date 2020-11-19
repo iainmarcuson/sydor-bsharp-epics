@@ -152,7 +152,20 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 
     //Create the parameters for use with PID
     createParam(P_PIDEnableString, asynParamInt32, &P_FdbkEnable);
-    
+    createParam(P_PIDXSpString, asynParamFloat64, &P_Fdbk_X_SP);
+    createParam(P_PIDXKPString, asynParamFloat64, &P_Fdbk_X_KP);
+    createParam(P_PIDXKIString, asynParamFloat64, &P_Fdbk_X_KI);
+    createParam(P_PIDXKDString, asynParamFloat64, &P_Fdbk_X_KD);
+    createParam(P_PIDXMVString, asynParamFloat64, &P_Fdbk_X_MaxV);
+
+    //Set the PID register parameters
+    pidRegData_ = {
+      {param_reg, 200, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //Setpoint
+      {param_reg, 201, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //P term
+      {param_reg, 202, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //I term
+      {param_reg, 203, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //D term
+      {param_reg, 204, 0xFFFFFFFF, reg_int, 0.0, 5.0, 0, 50000}	 //Max V
+    };
        
     acquiring_ = 0;
     readingActive_ = 0;
@@ -297,6 +310,22 @@ asynStatus drvBS_EM::findModule()
     return asynSuccess;
 }
 
+void drvBS_EM::process_reg(int reg_lookup, double value)
+{
+  double t;
+  bs_Reg_T curr_item;
+  BS_Out_T out_value;
+  
+  curr_item = pidRegData_[reg_lookup];
+
+  t = (value-curr_item.in_min)/(curr_item.in_max-curr_item.in_min);
+  if (curr_item.output_type == reg_int)
+    {
+      int out_val;
+      out_val = out_val;
+    }
+  return;
+}
 /** Writes a string to the BS_EM and reads the response. */
 asynStatus drvBS_EM::writeReadMeter()
 {
@@ -546,9 +575,13 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
   int function = pasynUser->reason;
   int status = asynSuccess;
   int channel;
+  int reg_lookup;
   const char *paramName;
   const char *functionName = "writeInt32";
 
+  ///XXX REMOVETHIS
+  return drvQuadEM::writeInt32(pasynUser, value);
+  
   getAddress(pasynUser, &channel);
 
   /* Set the parameter in the parameter library. */
@@ -558,13 +591,23 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
   getParamName(function, &paramName);
 
   printf("In writeInt32()\n");
+
+  reg_lookup = -1;
   if (function == P_FdbkEnable)
     {
       printf("Feedback enable: value %d\n", value);
       epicsSnprintf(outString_, sizeof(outString_), "wr 220 %d\r\n", value);
       status = writeReadMeter();
     }
-  else				// Assume function not a BSharp one
+  
+  
+  if (reg_lookup >= 0)
+    {
+      process_reg(reg_lookup, value);	// Get the command string for the register lookup set
+      //writeread
+    }
+
+  if (function < P_FdbkEnable)	// Assume function not a BSharp one
     {
       drvQuadEM::writeInt32(pasynUser, value);
     }
@@ -579,6 +622,47 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
 // TODO Expand this
 asynStatus drvBS_EM::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 {
+  int function = pasynUser->reason;
+  int status = asynSuccess;
+  int channel;
+  int reg_lookup;
+
+  ///XXX REMOVETHIS
+  return drvQuadEM::writeFloat64(pasynUser, value);
+  
+  getAddress(pasynUser, &channel);
+
+  // Set the parameter in the parameter library.
+  status |= setDoubleParam(channel, function, value);
+  
+  // Look up the specific function
+  reg_lookup = -1;
+  /*
+  switch(function)
+    {
+    case P_Fdbk_X_SP:
+      reg_lookup = 0;
+      break;
+    case P_Fdbk_X_KP:
+      reg_lookup = 1;
+      break;
+    case P_Fdbk_X_KI:
+      reg_lookup = 2;
+      break;
+    case P_Fdbk_X_KD:
+      reg_lookup = 3;
+      break;
+    case P_Fdbk_X_MaxV:
+      reg_lookup = 4;
+      break;
+    }
+  */
+  if (reg_lookup >= 0)
+    {
+      process_reg(reg_lookup, value);	// Get the command string for the register lookup set
+      status = writeReadMeter();
+    }
+
   return (asynStatus)drvQuadEM::writeFloat64(pasynUser, value);
 }
 

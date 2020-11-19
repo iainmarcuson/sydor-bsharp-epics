@@ -132,10 +132,13 @@ private:
     char ipAddress_[MAX_IPNAME_LEN];
     char outString_[MAX_COMMAND_LEN];
     char inString_[MAX_COMMAND_LEN];
+
+    Bs_Reg_T pidRegData_[5];	/* Holds parameters for the PID registers */
     asynStatus findModule();
     asynStatus writeReadMeter();
     asynStatus getFirmwareVersion();
     asynStatus setMode();
     asynStatus computeScaleFactor();
+    void process_reg(int reg_lookup, double value);
 };
 
