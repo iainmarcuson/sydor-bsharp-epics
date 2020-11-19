@@ -288,7 +288,7 @@ try:
                 FIFO_DIRTY = True; # FIFO modified, so set dirty
                 ###
                 print("Got a full packet");
-                if (read_bytes[0] == b'B') and (read_bytes[1] == 1):
+                if (read_bytes[0] == ord(b'B')) and (read_bytes[1] == 1):
                     data_pending = DATA_CURR;
                     data_in_count = data_in_count +1;
                     ###
