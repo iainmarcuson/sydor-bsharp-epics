@@ -1,3 +1,0 @@
-epicsEnvSet("IOC","iocYokogawaDasEx")
-epicsEnvSet("TOP","/home/spectro/src/bsharp/synApps_6_1/support/Yokogawa_DAS-R2-0-1")
-epicsEnvSet("EPICS_BASE","/usr/lib/epics2/base")

@@ -1,5 +1,0 @@
-epicsEnvSet("IOC","ioctestStatsSoft")
-epicsEnvSet("TOP","/home/spectro/src/bsharp/synApps_6_1/support/iocStats-3-1-16")
-epicsEnvSet("SUPPORT","/home/spectro/src/bsharp/synApps_6_1/support")
-epicsEnvSet("SNCSEQ","/home/spectro/src/bsharp/synApps_6_1/support/seq-2-2-6")
-epicsEnvSet("EPICS_BASE","/usr/lib/epics2/base")
