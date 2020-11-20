@@ -66,19 +66,19 @@ def bsharp_all_recv(in_bytes):
             #
 
         if len(in_bytes) >= expected_size:
-            print("B1 returning {} of {} bytes.".format(len(in_bytes[0:expected_size]), len(in_bytes)));
+            #print("B1 returning {} of {} bytes.".format(len(in_bytes[0:expected_size]), len(in_bytes)));
             return (RECV_FULL, in_bytes[0:expected_size]);
         else:
             return (RECV_PARTIAL, b'');
 
     else:             # Assume Command
-        if FIFO_DIRTY:
-            try:
-                print("Received command bytes: {}".format(in_bytes[0:16].decode()));
-            except:
-                if (len(in_bytes))>=4:
-                    print("Received command hex: {:3d} {:3d} {:3d} {:3d}".format(in_bytes[0], in_bytes[1], in_bytes[2], in_bytes[3]));
-                    foo = 123;
+        #if FIFO_DIRTY:
+            #try:
+            #    print("Received command bytes: {}".format(in_bytes[0:16].decode()));
+            #except:
+            #    if (len(in_bytes))>=4:
+            #        print("Received command hex: {:3d} {:3d} {:3d} {:3d}".format(in_bytes[0], in_bytes[1], in_bytes[2], in_bytes[3]));
+            #        foo = 123;
         #command_hex = "Command hex is: ";
         #for curr_byte in in_bytes:
         #    command_hex = command_hex + "{:2x} ".format(curr_byte);
@@ -113,7 +113,7 @@ def read_intelligent(in_socket):
         
         curr_bytes = in_socket.recv(1024);
         if len(curr_bytes)>=4:
-            print("Start of packet: {:3} {:3} {:3} {:3}".format(curr_bytes[0], curr_bytes[1], curr_bytes[2], curr_bytes[3]));
+            #print("Start of packet: {:3} {:3} {:3} {:3}".format(curr_bytes[0], curr_bytes[1], curr_bytes[2], curr_bytes[3]));
             pass;
         out_bytes = out_bytes + curr_bytes;
         ###
@@ -287,12 +287,12 @@ try:
                 from_bsharp_socket = from_bsharp_socket[len(read_bytes):]; # Strip the valid data from the queue
                 FIFO_DIRTY = True; # FIFO modified, so set dirty
                 ###
-                print("Got a full packet");
+                #print("Got a full packet");
                 if (read_bytes[0] == ord(b'B')) and (read_bytes[1] == 1):
                     data_pending = DATA_CURR;
                     data_in_count = data_in_count +1;
                     ###
-                    print("Got a B1");
+                    #print("Got a B1");
                 elif (read_bytes.find(b'bb') == 0):
                     data_pending = DATA_CURR;
                     data_in_count = data_in_count + 1;
