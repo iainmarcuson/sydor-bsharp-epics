@@ -383,10 +383,18 @@ try:
                     data_pending = DATA_NONE;
                     data_out_count = data_out_count + 1;
             if (curr_writable == cmd_client_sock) and (data_pending == DATA_CMD):
+                curr_bsharp = read_bytes;
                 cmd_client_sock.send(curr_bsharp);
                 cmd_finish_time = time.monotonic();
                 print("Command took {} seconds.".format(cmd_finish_time-cmd_get_time));
-                ###Below can error out if packets out of sync.
+                try:
+                    print("Command response string: {}".format(curr_bsharp.decode()))
+                except:
+                    debug_string = "Command response hex: ";
+                    for curr_byte in curr_bsharp:
+                        debug_string = debug_string + "{:02x} ".format(curr_byte);
+                    print(debug_string);
+                    ###Below can error out if packets out of sync.
                 ###print("Command client send string: {}".format(curr_bsharp.decode()));
                 data_pending = DATA_NONE
         sys.stdout.flush();

@@ -346,8 +346,8 @@ void drvBS_EM::process_reg(int reg_lookup, double value)
       //First, read in the value
       epicsSnprintf(outString_, sizeof(outString_), "rr %d?\r\n", curr_item.reg_num);
       writeReadMeter();
-      sscanf(response_string, "%[^\n]", inString_);
-      printf("Multi-bit response string reg %d:\n%s\n", curr_item.reg_num, response_string);
+      sscanf(inString_, "%[^\n]", response_string);
+      printf("Multi-bit response string reg %d, length %i:\n%s\n", curr_item.reg_num, (int) strlen(response_string), response_string);
       fflush(stdout);
       
       delim_find = strstr(inString_, ">");
