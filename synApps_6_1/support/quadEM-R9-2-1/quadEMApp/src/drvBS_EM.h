@@ -35,7 +35,7 @@
 #define P_PIDEnableString           "PID_ON"                      /* asynInt32 */
 #define P_PIDCutoffString           "PID_CUT"                     /* asynFloat64 */
 #define P_PIDReenableString         "PID_RE"                      /* asynInt32 */
-
+#define P_PIDDACModeString          "PID_DACM"                    /* asynInt32 */
 
 typedef struct {
     int moduleID;
@@ -101,6 +101,7 @@ protected:
     int P_Fdbk_Y_MaxV;
     int P_Fdbk_CutOut;
     int P_Fdbk_Reenable;
+    int P_Fdbk_DACMode;
     
     /* These are the methods we implement from quadEM */
     virtual asynStatus setAcquire(epicsInt32 value);
@@ -133,7 +134,7 @@ private:
     char outString_[MAX_COMMAND_LEN];
     char inString_[MAX_COMMAND_LEN];
 
-    Bs_Reg_T pidRegData_[5];	/* Holds parameters for the PID registers */
+    Bs_Reg_T pidRegData_[6];	/* Holds parameters for the PID registers */
     asynStatus findModule();
     asynStatus writeReadMeter();
     asynStatus getFirmwareVersion();

@@ -66,7 +66,15 @@ static void readThread(void *drvPvt);
   *            If 0 then default of 2048 is used.
   */
 drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int moduleID, int ringBufferSize) 
-   : drvQuadEM(portName, ringBufferSize)
+  : drvQuadEM(portName, ringBufferSize),
+    pidRegData_{
+  {param_reg, 200, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //X Setpoint
+    {param_reg, 201, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //X P term
+      {param_reg, 202, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //X I term
+	{param_reg, 203, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //X D term
+	  {param_reg, 204, 0xFFFFFFFF, reg_int, 0.0, 5.0, 0, 50000},	 //X Max V
+	    {param_multibit, 240, 0x00000007, reg_int, 0, 0, 0 , 0} // DAC mode
+    }
   
 {
     asynStatus status;
@@ -152,20 +160,31 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 
     //Create the parameters for use with PID
     createParam(P_PIDEnableString, asynParamInt32, &P_FdbkEnable);
+    createParam(P_PIDCutoffString, asynParamFloat64, &P_Fdbk_CutOut);
+    createParam(P_PIDReenableString, asynParamInt32, &P_Fdbk_Reenable);
+    
     createParam(P_PIDXSpString, asynParamFloat64, &P_Fdbk_X_SP);
     createParam(P_PIDXKPString, asynParamFloat64, &P_Fdbk_X_KP);
     createParam(P_PIDXKIString, asynParamFloat64, &P_Fdbk_X_KI);
     createParam(P_PIDXKDString, asynParamFloat64, &P_Fdbk_X_KD);
     createParam(P_PIDXMVString, asynParamFloat64, &P_Fdbk_X_MaxV);
 
+    createParam(P_PIDYSpString, asynParamFloat64, &P_Fdbk_Y_SP);
+    createParam(P_PIDYKPString, asynParamFloat64, &P_Fdbk_Y_KP);
+    createParam(P_PIDYKIString, asynParamFloat64, &P_Fdbk_Y_KI);
+    createParam(P_PIDYKDString, asynParamFloat64, &P_Fdbk_Y_KD);
+    createParam(P_PIDYMVString, asynParamFloat64, &P_Fdbk_Y_MaxV);
+
+    createParam(P_PIDDACModeString, asynParamInt32, &P_Fdbk_DACMode);
+    
     //Set the PID register parameters
-    pidRegData_ = {
+    /*pidRegData_ = {
       {param_reg, 200, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //Setpoint
       {param_reg, 201, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //P term
       {param_reg, 202, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //I term
       {param_reg, 203, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //D term
       {param_reg, 204, 0xFFFFFFFF, reg_int, 0.0, 5.0, 0, 50000}	 //Max V
-    };
+      }; */
        
     acquiring_ = 0;
     readingActive_ = 0;
@@ -313,17 +332,49 @@ asynStatus drvBS_EM::findModule()
 void drvBS_EM::process_reg(int reg_lookup, double value)
 {
   double t;
-  bs_Reg_T curr_item;
+  Bs_Reg_T curr_item;
   BS_Out_T out_value;
   
   curr_item = pidRegData_[reg_lookup];
 
+  if (curr_item.param_type == param_multibit)
+    {
+      int reg_start_value;
+      char *delim_find;
+      char response_string[256];
+      
+      //First, read in the value
+      epicsSnprintf(outString_, sizeof(outString_), "rr %d?\r\n", curr_item.reg_num);
+      writeReadMeter();
+      sscanf(response_string, "%[^\n]", inString_);
+      printf("Multi-bit response string reg %d:\n%s\n", curr_item.reg_num, response_string);
+      fflush(stdout);
+      
+      delim_find = strstr(inString_, ">");
+      if (delim_find == NULL)	// TODO Handle this better
+	{
+	  epicsSnprintf(outString_, sizeof(outString_), "rr 1?\r\n"); // Put in a harmless command
+	  printf("Failed to get response from hardware.\n");
+	  fflush(stdout);
+	  return;
+	}
+      
+      sscanf(&(delim_find[1]), "%i", &reg_start_value); // Start after the delimiter
+      reg_start_value = reg_start_value & ~curr_item.bit_mask; // Mask out the bits to manipulate
+      reg_start_value = reg_start_value | (unsigned int) value; // Or in the new value from the Db file
+      epicsSnprintf(outString_, sizeof(outString_), "wr %d %i\r\n", curr_item.reg_num, reg_start_value);
+      return;
+    }
+  
   t = (value-curr_item.in_min)/(curr_item.in_max-curr_item.in_min);
   if (curr_item.output_type == reg_int)
     {
       int out_val;
-      out_val = out_val;
+      out_val = curr_item.out_min.out_int + t*(curr_item.out_max.out_int-curr_item.out_min.out_int);
+      epicsSnprintf(outString_, sizeof(outString_), "wr %d %d\r\n", curr_item.reg_num, out_val);
     }
+
+  
   return;
 }
 /** Writes a string to the BS_EM and reads the response. */
@@ -579,9 +630,6 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
   const char *paramName;
   const char *functionName = "writeInt32";
 
-  ///XXX REMOVETHIS
-  return drvQuadEM::writeInt32(pasynUser, value);
-  
   getAddress(pasynUser, &channel);
 
   /* Set the parameter in the parameter library. */
@@ -599,12 +647,15 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
       epicsSnprintf(outString_, sizeof(outString_), "wr 220 %d\r\n", value);
       status = writeReadMeter();
     }
-  
+  if (function == P_Fdbk_DACMode)
+    {
+      reg_lookup = 5;
+    }  
   
   if (reg_lookup >= 0)
     {
       process_reg(reg_lookup, value);	// Get the command string for the register lookup set
-      //writeread
+      status = writeReadMeter();
     }
 
   if (function < P_FdbkEnable)	// Assume function not a BSharp one
@@ -628,7 +679,7 @@ asynStatus drvBS_EM::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
   int reg_lookup;
 
   ///XXX REMOVETHIS
-  return drvQuadEM::writeFloat64(pasynUser, value);
+  //return drvQuadEM::writeFloat64(pasynUser, value);
   
   getAddress(pasynUser, &channel);
 
@@ -637,29 +688,33 @@ asynStatus drvBS_EM::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
   
   // Look up the specific function
   reg_lookup = -1;
-  /*
-  switch(function)
+  
+  if (function == P_Fdbk_X_SP)
     {
-    case P_Fdbk_X_SP:
       reg_lookup = 0;
-      break;
-    case P_Fdbk_X_KP:
-      reg_lookup = 1;
-      break;
-    case P_Fdbk_X_KI:
-      reg_lookup = 2;
-      break;
-    case P_Fdbk_X_KD:
-      reg_lookup = 3;
-      break;
-    case P_Fdbk_X_MaxV:
-      reg_lookup = 4;
-      break;
     }
-  */
+  else if (function == P_Fdbk_X_KP)
+    {
+      reg_lookup = 1;
+    }
+  else if (function == P_Fdbk_X_KI)
+    {
+      reg_lookup = 2;
+    }
+  else if (function == P_Fdbk_X_KD)
+    {
+      reg_lookup = 3;
+    }
+  else if (function == P_Fdbk_X_MaxV)
+    {
+      reg_lookup = 4;
+    }
+    
   if (reg_lookup >= 0)
     {
       process_reg(reg_lookup, value);	// Get the command string for the register lookup set
+      printf(outString_);
+      fflush(stdout);
       status = writeReadMeter();
     }
 
