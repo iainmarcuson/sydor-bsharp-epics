@@ -13,21 +13,37 @@ RECV_PARTIAL = 0;
 RECV_FULL = 1;
 RECV_FLUSH = 2;                 # If an erroneous packet is detected, signal to flush the buffer
 
+
+## YF [
+ALLOW_FLUSH = True
+FLUSH = False
+## YF ]
+
 FIFO_DIRTY = False;
 desync_packets = 0;
 
 DEFAULT_SELECT = 0.02;
 select_timeout = DEFAULT_SELECT;
 
+internal_log = []
+
+
 def bsharp_all_recv(in_bytes):
     global FIFO_DIRTY;
     global desync_packets;
     ###if len(in_bytes) >= 3:
     ###    print("all_recv: {:2x} {:2x} {:2x} {:2x}".format(in_bytes[0], in_bytes[1], in_bytes[2], in_bytes[3]));
+
+    #YF[
+    log_len_inbytes = len(in_bytes)
+    #YF]
+
     if in_bytes.find(b'bb') == 0: # Data
         #print("bb size:  {}".format(len(in_bytes)));
         delimit_idx = in_bytes.find(b'\x01');
         if (delimit_idx < 0):
+            internal_log.append( str(log_len_inbytes) + ", " +  "RP, L42")
+
             return (RECV_PARTIAL, b'');
         data_size = in_bytes[delimit_idx+1]*256+in_bytes[delimit_idx+2];
         #print("bb payload size: {}".format(data_size));
@@ -46,10 +62,13 @@ def bsharp_all_recv(in_bytes):
             #               | +---------------> "B\x01"
             #               +-----------------> "rb>"
             
+
         if len(in_bytes) >= expected_size:
             #print("bb returning {} of {} bytes.".format(len(in_bytes[0:expected_size]), len(in_bytes)));
+            internal_log.append( str(log_len_inbytes) + ", " +  "RF, L70")
             return (RECV_FULL, in_bytes[0:expected_size]);
         else:
+            internal_log.append( str(log_len_inbytes) + ", " +  "RP, L76")
             return (RECV_PARTIAL, b'');
 
     elif in_bytes.find(b'B\x01') == 0:
@@ -67,8 +86,10 @@ def bsharp_all_recv(in_bytes):
 
         if len(in_bytes) >= expected_size:
             #print("B1 returning {} of {} bytes.".format(len(in_bytes[0:expected_size]), len(in_bytes)));
+            internal_log.append( str(log_len_inbytes) + ", " +  "RF, L86")
             return (RECV_FULL, in_bytes[0:expected_size]);
         else:
+            internal_log.append( str(log_len_inbytes) + ", " +  "RP, L89")
             return (RECV_PARTIAL, b'');
 
     else:             # Assume Command
@@ -190,6 +211,9 @@ try:
     from_bsharp_socket = b'';   # Start with an empty "FIFO"
     FIFO_DIRTY = False;         # FIFO is initially clean
     data_pending = DATA_NONE;
+    ## YF[
+    dump_counter = 0
+    ## YF]
     while True:
         # Python won't accept None in the list, so that must be added manually
         write_list = [];
@@ -209,7 +233,17 @@ try:
 
         select_timeout = DEFAULT_SELECT; # Always reset to default, as sometimes we might do a fast timeout;
         
-        curr_minutes = int(time.time()/60);
+        ## YF[
+        if len(read_list) == 0:
+            if FLUSH:
+                FLUSH = False
+                bsharp_sock.send(b'bc 152 2\r\n');   # RE-START  Transmitting
+
+        ## YF]
+
+
+        curr_minutes = int(time.time()/10);  ## YF
+
         if (curr_minutes != old_minutes):
             old_minutes = curr_minutes;
             print("In: {}\tOut: {}".format(data_in_count, data_out_count));
@@ -262,8 +296,13 @@ try:
                 # Do nothing 
             
             if curr_readable == bsharp_sock:
-                
-                    
+
+                if FLUSH:
+                    dump = bsharp_sock.recv(4096); # Get partial read
+                    dump_counter = dump_counter + 1
+                    internal_log.append("DC" + str(dump_counter))
+                    continue
+
                 #print("Can read bsharp socket");
                 #curr_bsharp = bsharp_sock.recv(4096); # Check length
                 curr_bsharp = bsharp_sock.recv(4096); # Get partial read
@@ -271,9 +310,19 @@ try:
 
                 # XXX FIXME This is to flush the buffer if we get out of sync.
                 # The number should probably change.
-                if (len(from_bsharp_socket)) > (440*2+32): # Two data transmissions plus a command
-                    from_bsharp_socket = b'';
-                FIFO_DIRTY = True;
+                if ALLOW_FLUSH:
+                    if (len(from_bsharp_socket)) > (440*2+32): # Two data transmissions plus a command
+                        from_bsharp_socket = b'';
+                        FLUSH = True;
+                        FIFO_DIRTY = True;
+                        ## YF[
+                        select_timeout = 0.001;   # If packets are too rapid, clear quickly
+                        print("Set Broadcast off")
+                        bsharp_sock.send(b'bs 152 2\r\n');   # STOP Transmitting - Turn off Broadcast mode
+                        continue
+
+                ## YF]
+
         # Can only handle one packet per loop to avoid overwriting responses from the socket for the writable below
         if len(from_bsharp_socket) > 0:
             (read_status, read_bytes) = bsharp_all_recv(from_bsharp_socket);
