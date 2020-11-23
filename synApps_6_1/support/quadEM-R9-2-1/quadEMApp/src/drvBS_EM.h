@@ -23,6 +23,8 @@
 #define P_PIDXKIString              "PIDX_KI"                   /* asynFloat64,    r/w */
 #define P_PIDXKDString              "PIDX_KD"                   /* asynFloat64,    r/w */
 #define P_PIDXMVString              "PIDX_MAXV"                   /* asynFloat64,    r/w */
+#define P_PIDXVOString              "PIDX_VOFF"                /* asynFloat64 */
+
 
 //Y Channel
 #define P_PIDYSpString              "PIDY_SP"                   /* asynFloat64,    r/w */
@@ -30,12 +32,19 @@
 #define P_PIDYKIString              "PIDY_KI"                   /* asynFloat64,    r/w */
 #define P_PIDYKDString              "PIDY_KD"                   /* asynFloat64,    r/w */
 #define P_PIDYMVString              "PIDY_MAXV"                   /* asynFloat64,    r/w */
+#define P_PIDYVOString              "PIDY_VOFF"                /* asynFloat64 */
+
 
 //General PID
 #define P_PIDEnableString           "PID_ON"                      /* asynInt32 */
 #define P_PIDCutoffString           "PID_CUT"                     /* asynFloat64 */
 #define P_PIDReenableString         "PID_RE"                      /* asynInt32 */
 #define P_PIDDACModeString          "PID_DACM"                    /* asynInt32 */
+#define P_PIDCutoutEnString         "PID_CUTEN"                   /* asynInt32 */
+#define P_PIDCutoutHystString       "PID_CUTHY"                   /* asynFloat64 */
+#define P_PIDIVString              "PID_ITOV"                    /* asynFloat64 */
+#define P_PIDExtTrigString         "PID_XTRIG"                   /* asynInt32 */
+#define P_PIDInhibitString         "PID_INHIBIT"                 /* asynInt32 */
 
 typedef struct {
     int moduleID;
@@ -94,14 +103,21 @@ protected:
     int P_Fdbk_X_KI;
     int P_Fdbk_X_KD;
     int P_Fdbk_X_MaxV;
+    int P_Fdbk_X_VOff;
     int P_Fdbk_Y_SP;
     int P_Fdbk_Y_KP;
     int P_Fdbk_Y_KI;
     int P_Fdbk_Y_KD;
     int P_Fdbk_Y_MaxV;
-    int P_Fdbk_CutOut;
+    int P_Fdbk_Y_VOff;
+    int P_Fdbk_CutOutEn;
     int P_Fdbk_Reenable;
+    int P_Fdbk_CutOutThresh;
+    int P_Fdbk_CutOutHyst;
     int P_Fdbk_DACMode;
+    int P_Fdbk_I2VScale;
+    int P_Fdbk_ExtTrig;
+    int P_Fdbk_PIDInhibit;
     
     /* These are the methods we implement from quadEM */
     virtual asynStatus setAcquire(epicsInt32 value);
@@ -134,7 +150,7 @@ private:
     char outString_[MAX_COMMAND_LEN];
     char inString_[MAX_COMMAND_LEN];
 
-    Bs_Reg_T pidRegData_[6];	/* Holds parameters for the PID registers */
+    Bs_Reg_T pidRegData_[21];	/* Holds parameters for the PID registers */
     asynStatus findModule();
     asynStatus writeReadMeter();
     asynStatus getFirmwareVersion();

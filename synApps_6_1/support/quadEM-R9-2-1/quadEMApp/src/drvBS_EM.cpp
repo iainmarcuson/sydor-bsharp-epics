@@ -68,13 +68,28 @@ static void readThread(void *drvPvt);
 drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int moduleID, int ringBufferSize) 
   : drvQuadEM(portName, ringBufferSize),
     pidRegData_{
-  {param_reg, 200, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //X Setpoint
-    {param_reg, 201, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //X P term
-      {param_reg, 202, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //X I term
-	{param_reg, 203, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //X D term
-	  {param_reg, 204, 0xFFFFFFFF, reg_int, 0.0, 5.0, 0, 50000},	 //X Max V
-	    {param_multibit, 240, 0x00000007, reg_int, 0, 0, 0 , 0} // DAC mode
-    }
+  {param_reg, 200, 0xFFFFFFFF, reg_int, -1.0, 1.0, -10000, 10000}, //0 X Setpoint
+    {param_reg, 201, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //1 X P term
+      {param_reg, 202, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //2 X I term
+	{param_reg, 203, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //3 X D term
+	  {param_reg, 204, 0xFFFFFFFF, reg_int, 0.0, 5.0, 0, 50000},	 //4 X Max V
+	    {param_reg, 205, 0xFFFFFFFF, reg_int, 0.0, 10.0, 0, 100000},	 //5 X Voltage Offset
+	      {param_reg, 210, 0xFFFFFFFF, reg_int, -1.0, 1.0, -10000, 10000}, //6 Y Setpoint
+		{param_reg, 211, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //7 Y P term
+		  {param_reg, 212, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //8 Y I term
+		    {param_reg, 213, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //9 Y D term
+		      {param_reg, 214, 0xFFFFFFFF, reg_int, 0.0, 5.0, 0, 50000},	 //10 Y Max V
+			{param_reg, 215, 0xFFFFFFFF, reg_int, 0.0, 10.0, 0, 100000},	 //11 Y Voltage Offset
+	    {param_multibit, 240, 0x00000007, reg_int, 0, 0, 0 , 0}, //12 DAC mode
+	      {param_bit, 220, 0x4, reg_int, 0, 0, 0, 0}, //13 PID enable
+		{param_bit, 220, 0x2, reg_int, 0, 0, 0, 0}, //14 Cutout enable
+		  {param_bit, 220, 0x1, reg_int, 0, 0, 0, 0}, //15 Auto reenable
+		    {param_reg, 221, 0xFFFFFFFF, reg_int, 0, 1e6, 0, (int) 1e9}, //16 Cutout threshold
+		      {param_reg, 222, 0xFFFFFFFF, reg_int, 0, 1e6, 0, (int) 1e9}, //17 Cutout reenable hysteresis
+			{param_reg, 239, 0xFFFFFFFF, reg_int, 0, 1e5, 0, (int) 1e9}, //18 XXX FIXME I-to-V value?
+			  {param_bit, 240, 0x8, reg_int, 0, 0, 0, 0}, //19 External trigger
+			    {param_bit, 240, 0x10, reg_int, 0, 0, 0, 0} //20 PID Inhibit
+}
   
 {
     asynStatus status;
@@ -160,23 +175,29 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 
     //Create the parameters for use with PID
     createParam(P_PIDEnableString, asynParamInt32, &P_FdbkEnable);
-    createParam(P_PIDCutoffString, asynParamFloat64, &P_Fdbk_CutOut);
+    createParam(P_PIDCutoffString, asynParamFloat64, &P_Fdbk_CutOutThresh);
     createParam(P_PIDReenableString, asynParamInt32, &P_Fdbk_Reenable);
+    createParam(P_PIDCutoutEnString, asynParamInt32, &P_Fdbk_CutOutEn);
+    createParam(P_PIDCutoutHystString, asynParamFloat64, &P_Fdbk_CutOutHyst);
     
     createParam(P_PIDXSpString, asynParamFloat64, &P_Fdbk_X_SP);
     createParam(P_PIDXKPString, asynParamFloat64, &P_Fdbk_X_KP);
     createParam(P_PIDXKIString, asynParamFloat64, &P_Fdbk_X_KI);
     createParam(P_PIDXKDString, asynParamFloat64, &P_Fdbk_X_KD);
     createParam(P_PIDXMVString, asynParamFloat64, &P_Fdbk_X_MaxV);
-
+    createParam(P_PIDXVOString, asynParamFloat64, &P_Fdbk_X_VOff);
+    
     createParam(P_PIDYSpString, asynParamFloat64, &P_Fdbk_Y_SP);
     createParam(P_PIDYKPString, asynParamFloat64, &P_Fdbk_Y_KP);
     createParam(P_PIDYKIString, asynParamFloat64, &P_Fdbk_Y_KI);
     createParam(P_PIDYKDString, asynParamFloat64, &P_Fdbk_Y_KD);
     createParam(P_PIDYMVString, asynParamFloat64, &P_Fdbk_Y_MaxV);
+    createParam(P_PIDYVOString, asynParamFloat64, &P_Fdbk_Y_VOff);
 
     createParam(P_PIDDACModeString, asynParamInt32, &P_Fdbk_DACMode);
-    
+    createParam(P_PIDIVString, asynParamFloat64, &P_Fdbk_I2VScale);
+    createParam(P_PIDExtTrigString, asynParamInt32, &P_Fdbk_ExtTrig);
+    createParam(P_PIDInhibitString, asynParamInt32, &P_Fdbk_PIDInhibit);
     //Set the PID register parameters
     /*pidRegData_ = {
       {param_reg, 200, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //Setpoint
@@ -365,6 +386,23 @@ void drvBS_EM::process_reg(int reg_lookup, double value)
       epicsSnprintf(outString_, sizeof(outString_), "wr %d %i\r\n", curr_item.reg_num, reg_start_value);
       return;
     }
+
+  if (curr_item.param_type == param_bit)
+    {
+      unsigned int bitmask;
+
+      bitmask = curr_item.bit_mask;
+      if (value)
+	{
+	  epicsSnprintf(outString_, sizeof(outString_), "bs %i %u\r\n", curr_item.reg_num, bitmask);
+	  return;
+	}
+      else
+	{
+	  epicsSnprintf(outString_, sizeof(outString_), "bc %i %u\r\n", curr_item.reg_num, bitmask);
+	  return;
+	}
+    }
   
   t = (value-curr_item.in_min)/(curr_item.in_max-curr_item.in_min);
   if (curr_item.output_type == reg_int)
@@ -373,7 +411,11 @@ void drvBS_EM::process_reg(int reg_lookup, double value)
       out_val = curr_item.out_min.out_int + t*(curr_item.out_max.out_int-curr_item.out_min.out_int);
       epicsSnprintf(outString_, sizeof(outString_), "wr %d %d\r\n", curr_item.reg_num, out_val);
     }
-
+  else
+    {
+      printf("Error: Unimplemented function for write float.\n");
+      fflush(stdout);
+    }
   
   return;
 }
@@ -643,14 +685,28 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
   reg_lookup = -1;
   if (function == P_FdbkEnable)
     {
-      printf("Feedback enable: value %d\n", value);
-      epicsSnprintf(outString_, sizeof(outString_), "wr 220 %d\r\n", value);
-      status = writeReadMeter();
+      reg_lookup = 13;
     }
-  if (function == P_Fdbk_DACMode)
+  else if (function == P_Fdbk_DACMode)
     {
-      reg_lookup = 5;
-    }  
+      reg_lookup = 12;
+    }
+  else if (function == P_Fdbk_Reenable)
+    {
+      reg_lookup = 15;
+    }
+  else if (function == P_Fdbk_CutOutEn)
+    {
+      reg_lookup = 14;
+    }
+  else if (function == P_Fdbk_ExtTrig)
+    {
+      reg_lookup = 19;
+    }
+  else if (function == P_Fdbk_PIDInhibit)
+    {
+      reg_lookup = 20;
+    }
   
   if (reg_lookup >= 0)
     {
@@ -660,6 +716,12 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
   if (function < P_FdbkEnable)	// Assume function not a BSharp one
     {
+      printf("writeINt falling through.\n");
+      if (function == P_Acquire)
+	{
+	  printf("writing an acquire in fallthrough\n");
+	}
+      fflush(stdout);
       drvQuadEM::writeInt32(pasynUser, value);
     }
 
@@ -709,6 +771,47 @@ asynStatus drvBS_EM::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     {
       reg_lookup = 4;
     }
+  else if (function == P_Fdbk_X_VOff)
+    {
+      reg_lookup = 5;
+    }
+  else if (function == P_Fdbk_Y_SP)
+    {
+      reg_lookup = 6;
+    }
+  else if (function == P_Fdbk_Y_KP)
+    {
+      reg_lookup = 7;
+    }
+  else if (function == P_Fdbk_Y_KI)
+    {
+      reg_lookup = 8;
+    }
+  else if (function == P_Fdbk_Y_KD)
+    {
+      reg_lookup = 9;
+    }
+  else if (function == P_Fdbk_Y_MaxV)
+    {
+      reg_lookup = 10;
+    }
+  else if (function == P_Fdbk_Y_VOff)
+    {
+      reg_lookup = 11;
+    }
+  else if (function == P_Fdbk_CutOutThresh)
+    {
+      reg_lookup = 16;
+    }
+  else if (function == P_Fdbk_CutOutHyst)
+    {
+      reg_lookup = 17;
+    }
+  else if (function == P_Fdbk_I2VScale)
+    {
+      reg_lookup = 18;
+    }
+	
     
   if (reg_lookup >= 0)
     {

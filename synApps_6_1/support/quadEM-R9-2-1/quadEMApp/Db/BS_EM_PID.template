@@ -100,6 +100,26 @@ record(ai, "$(P)$(R)PIDX_MV_RBV")
 	field(SCAN, "I/O Intr")
 }
 
+record(ao, "$(P)$(R)PIDX_VOff")
+{
+	field(DESC, "PID X Offset")
+	field(DTYP, "asynFloat64")
+	field(OUT, "@asyn($(PORT) 0)PIDX_VOFF")
+	field(DRVL, "0.0")
+	field(DRVH, "10.0")
+	field(VAL, "0")
+	field(PINI, "YES")
+}
+
+record(ai, "$(P)$(R)PIDX_VOff_RBV")
+{
+	field(DESC, "PID X Max Volts")
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT) 0)PIDX_VOFF")
+	field(SCAN, "I/O Intr")
+}
+
+
 ### PID Y Terms
 
 record(ao, "$(P)$(R)PIDY_SP")
@@ -193,6 +213,26 @@ record(ai, "$(P)$(R)PIDY_MV_RBV")
 	field(SCAN, "I/O Intr")
 }
 
+record(ao, "$(P)$(R)PIDY_VOff")
+{
+	field(DESC, "PID Y Offset")
+	field(DTYP, "asynFloat64")
+	field(OUT, "@asyn($(PORT) 0)PIDY_VOFF")
+	field(DRVL, "0.0")
+	field(DRVH, "10.0")
+	field(VAL, "0")
+	field(PINI, "YES")
+}
+
+record(ai, "$(P)$(R)PIDY_VOff_RBV")
+{
+	field(DESC, "PID Y Max Volts")
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT) 0)PIDY_VOFF")
+	field(SCAN, "I/O Intr")
+}
+
+
 # General PID PVs
 
 record(mbbo, "$(P)$(R)PID_On")
@@ -280,3 +320,153 @@ record(mbbo, "$(P)$(R)PID_DACM")
 	field(VAL, "0")
 	field(PINI, "YES")
 }
+
+record(mbbi, "$(P)$(R)PID_DACM_RBV")
+{
+	field(DESC, "DAC Mode")
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT) 0)PID_DACM")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "Quadrant")
+	field(ONVL, "1")
+	field(TWST, "Position")
+	field(TWVL, "2")
+	field(THST, "PID")
+	field(THVL, "3")
+	field(VAL, "0")
+	field(SCAN, "I/O Intr")
+}
+
+# Cutout Enable
+
+record(mbbo, "$(P)$(R)PID_CutEn")
+{
+	field(DESC, "Cutout Enable")
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT) 0)PID_CUTEN")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "On")
+	field(ONVL, "1")
+	field(VAL, "0")
+	field(PINI, "YES")
+}
+
+record(mbbi, "$(P)$(R)PID_CutEn_RBV")
+{
+	field(DESC, "Cutout Enable")
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT) 0)PID_CUTEN")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "On")
+	field(ONVL, "1")
+	field(VAL, "0")
+	field(SCAN, "I/O Intr")
+}
+
+# External Trigger
+
+
+record(mbbo, "$(P)$(R)PID_ExtTrig")
+{
+	field(DESC, "External Trigger")
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT) 0)PID_XTRIG")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "On")
+	field(ONVL, "1")
+	field(VAL, "0")
+	field(PINI, "YES")
+}
+
+record(mbbi, "$(P)$(R)PID_ExtTrig_RBV")
+{
+	field(DESC, "Cutout Enable")
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT) 0)PID_XTRIG")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "On")
+	field(ONVL, "1")
+	field(VAL, "0")
+	field(SCAN, "I/O Intr")
+}
+
+#PID Inhibit
+
+
+record(mbbo, "$(P)$(R)PID_Inhibit")
+{
+	field(DESC, "PID Inhibit")
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT) 0)PID_INHIBIT")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "On")
+	field(ONVL, "1")
+	field(VAL, "0")
+	field(PINI, "YES")
+}
+
+record(mbbi, "$(P)$(R)PID_Inhibit_RBV")
+{
+	field(DESC, "PID Inhibit")
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT) 0)PID_INHIBIT")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "On")
+	field(ONVL, "1")
+	field(VAL, "0")
+	field(SCAN, "I/O Intr")
+}
+
+
+
+#PID Re-enable Hysteresis
+
+record(ao, "$(P)$(R)PID_Cut_Hyst")
+{
+	field(DESC, "PID Cutout Hysteresis")
+	field(DTYP, "asynFloat64")
+	field(OUT, "@asyn($(PORT) 0)PID_CUTHY")
+	field(DRVL, "0.0")
+	field(DRVH, "1000000000.0")
+	field(VAL, "0")
+	field(PINI, "YES")
+}
+
+record(ai, "$(P)$(R)PID_Cut_Hyst_RBV")
+{
+	field(DESC, "Feedback Current to Voltage")
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT) 0)PID_CUTHY")
+	field(SCAN, "I/O Intr")
+}
+
+
+
+#Current to Voltage Coefficient
+
+record(ao, "$(P)$(R)PID_IToV")
+{
+	field(DESC, "Feedback Current to Voltage")
+	field(DTYP, "asynFloat64")
+	field(OUT, "@asyn($(PORT) 0)PID_ITOV")
+	field(DRVL, "0.0")
+	field(DRVH, "1000000000.0")
+	field(VAL, "0")
+	field(PINI, "YES")
+}
+
+record(ai, "$(P)$(R)PID_IToV_RBV")
+{
+	field(DESC, "Feedback Current to Voltage")
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT) 0)PID_ITOV")
+	field(SCAN, "I/O Intr")
+}
+
