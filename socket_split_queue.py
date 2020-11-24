@@ -5,6 +5,8 @@ import os
 import traceback
 import time
 
+BSHARP_ADDR = '192.168.11.91';
+
 packet_count = 0;
 CMD_LEN = 32;                  # Maximum length of command to try to filter out.  Actual max for a command is 25, but add a litle padding.
 
@@ -157,8 +159,8 @@ def read_all(in_socket):
     return out_bytes;
 
 BSHARP_PORT = 13000;
-BSHARP_ADDR = '127.0.0.1';
-BSHARP_ADDR = '192.168.11.101';
+#BSHARP_ADDR = '127.0.0.1';
+#BSHARP_ADDR = '192.168.11.91';
 CMD_PORT = 13001;
 DATA_PORT = 13002;
 
@@ -356,8 +358,12 @@ try:
                         for curr_byte in read_bytes[0:64]:
                             resp_string += "{:02x} ".format(curr_byte);
                         print(resp_string);
-                        
+                    # XXX Swallow broadcast enable/disable responses, as they will not come from EPICS
 
+                    if (read_bytes.find(b'bs 152') == 0) or (read_bytes.find(b'bc 152') == 0):
+                        read_bytes = b'';
+                        data_pending = DATA_NONE;
+                        
         for curr_writable in write_list: # TODO remove disconnected sockets from list
             if (curr_writable == data_client_sock) and (data_pending == DATA_CURR):
                 curr_bsharp = read_bytes;
