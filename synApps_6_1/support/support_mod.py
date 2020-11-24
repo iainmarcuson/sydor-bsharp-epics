@@ -1,9 +1,10 @@
 import os
+import sys
 
 support_dirname = os.getcwd();
 print "Support directory is " + support_dirname;
 
-template_filename = "configure/RELEASE.tmpl";
+template_filename = "configure/RELEASE.tmpl{}".format(sys.argv[1]);
 release_filename = "configure/RELEASE";
 
 template_file = open(template_filename, "rb");
