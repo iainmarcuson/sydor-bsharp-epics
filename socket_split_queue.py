@@ -19,6 +19,8 @@ RECV_FLUSH = 2;                 # If an erroneous packet is detected, signal to 
 ## YF [
 ALLOW_FLUSH = True
 FLUSH = False
+#internal_log = []    # use this to debug
+internal_log = None   # use this for release
 ## YF ]
 
 FIFO_DIRTY = False;
@@ -27,7 +29,7 @@ desync_packets = 0;
 DEFAULT_SELECT = 0.02;
 select_timeout = DEFAULT_SELECT;
 
-internal_log = []
+
 
 
 def bsharp_all_recv(in_bytes):
@@ -44,7 +46,8 @@ def bsharp_all_recv(in_bytes):
         #print("bb size:  {}".format(len(in_bytes)));
         delimit_idx = in_bytes.find(b'\x01');
         if (delimit_idx < 0):
-            internal_log.append( str(log_len_inbytes) + ", " +  "RP, L42")
+            if internal_log != None:
+                internal_log.append( str(log_len_inbytes) + ", " +  "RP, L42")
 
             return (RECV_PARTIAL, b'');
         data_size = in_bytes[delimit_idx+1]*256+in_bytes[delimit_idx+2];
@@ -67,10 +70,12 @@ def bsharp_all_recv(in_bytes):
 
         if len(in_bytes) >= expected_size:
             #print("bb returning {} of {} bytes.".format(len(in_bytes[0:expected_size]), len(in_bytes)));
-            internal_log.append( str(log_len_inbytes) + ", " +  "RF, L70")
+            if internal_log != None:
+               internal_log.append( str(log_len_inbytes) + ", " +  "RF, L70")
             return (RECV_FULL, in_bytes[0:expected_size]);
         else:
-            internal_log.append( str(log_len_inbytes) + ", " +  "RP, L76")
+            if internal_log != None:
+               internal_log.append( str(log_len_inbytes) + ", " +  "RP, L76")
             return (RECV_PARTIAL, b'');
 
     elif in_bytes.find(b'B\x01') == 0:
@@ -88,10 +93,12 @@ def bsharp_all_recv(in_bytes):
 
         if len(in_bytes) >= expected_size:
             #print("B1 returning {} of {} bytes.".format(len(in_bytes[0:expected_size]), len(in_bytes)));
-            internal_log.append( str(log_len_inbytes) + ", " +  "RF, L86")
+            if internal_log != None:
+               internal_log.append( str(log_len_inbytes) + ", " +  "RF, L86")
             return (RECV_FULL, in_bytes[0:expected_size]);
         else:
-            internal_log.append( str(log_len_inbytes) + ", " +  "RP, L89")
+            if internal_log != None:
+               internal_log.append( str(log_len_inbytes) + ", " +  "RP, L89")
             return (RECV_PARTIAL, b'');
 
     else:             # Assume Command
@@ -302,7 +309,8 @@ try:
                 if FLUSH:
                     dump = bsharp_sock.recv(4096); # Get partial read
                     dump_counter = dump_counter + 1
-                    internal_log.append("DC" + str(dump_counter))
+                    if internal_log != None:
+                       internal_log.append("DC" + str(dump_counter))
                     continue
 
                 #print("Can read bsharp socket");
