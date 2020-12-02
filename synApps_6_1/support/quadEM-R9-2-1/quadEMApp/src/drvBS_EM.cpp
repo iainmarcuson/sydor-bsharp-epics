@@ -988,6 +988,18 @@ asynStatus drvBS_EM::computeScaleFactor()
     scaleFactor_ = ranges_[range]*1e-12 * FREQUENCY / (integrationTime * 1e6)
                   / MAX_COUNTS / (double)valuesPerRead;
     acqFactor_ = ranges_[range]*1e-12*FREQUENCY/(integrationTime*1e6)/(double) valuesPerRead;
+    this->calc_calibration();
+    ///
+    if (1)
+      {
+	int channel_idx;
+	printf("New calibration values:\n");
+	for (channel_idx =0; channel_idx < 4; channel_idx++)
+	  {
+	    printf("Channel %i Slope: %8f Offset: %8f\n", channel_idx, cal_slope_[channel_idx], cal_offset_[channel_idx]);
+	  }
+	fflush(stdout);
+      }
     ///XXX FIXME TODO Set here to allow setIntegrationTime to shift current
     //scaleFactor_ = ranges_[range]*1e-12 * FREQUENCY / (1.0 * 1e6)
     //              / MAX_COUNTS / (double)valuesPerRead;
@@ -1074,6 +1086,9 @@ void drvBS_EM::parse_cal_file(FILE *cal_file)
   char curr_line[256];
   int range_idx;
   int channel_idx;
+
+  // Note that there are zero calibration values so far
+  num_cals_ = 0;
   
   // First, initialize the array to NOPs
   for (range_idx = 0; range_idx < MAX_RANGES; range_idx++)
@@ -1113,6 +1128,7 @@ void drvBS_EM::parse_cal_file(FILE *cal_file)
 	}
 
       cal_values_[curr_range].cal_present = 1; // Flag calibration present
+      num_cals_++;			       // Increase calibration count
       
       while (!feof(cal_file))			// Loop forever to read in new lines to get
 	// calibration values
@@ -1144,7 +1160,117 @@ void drvBS_EM::parse_cal_file(FILE *cal_file)
 
   return;
 }
+
+void drvBS_EM::calc_calibration()
+{
+  int lower_bound = -1;		// Not found yet
+  int upper_bound = -1;		// Not found yet
+  double curr_slope;
+  double curr_offset;		// Current slope and offset
+  double range_low;		// Lower range charge value for interpolation
+  double range_high;		// Higher range charge value for interpolation
+  double range_set;		// Curent range charge value
   
+  int curr_range;		// Value of current range
+  int range_idx, channel_idx;	// Indices for iterating
+  if (num_cals_ == 0)
+    {
+      int channel_idx;
+      for (channel_idx = 0; channel_idx <  4; channel_idx++)
+	{
+	  cal_slope_[channel_idx] = 1.0;
+	  cal_offset_[channel_idx] = 0.0;	// Set for NOPs
+	}
+      return;
+    }
+  else if (num_cals_ == 1)	// One calibration value
+    {
+      int range_idx;
+            
+      for (range_idx = 0; range_idx<MAX_RANGES; range_idx++)
+	{
+	  if (cal_values_[range_idx].cal_present == 1) // Found THE present value
+	    {
+	      int channel_idx;
+
+	      for (channel_idx = 0; channel_idx < 4; channel_idx++)
+		{
+		  cal_slope_[channel_idx] = cal_values_[range_idx].cal_slope[channel_idx];
+		  cal_offset_[channel_idx] = cal_values_[range_idx].cal_offset[channel_idx];
+		}
+	      break;
+	    }
+	}
+      return;
+    }
+
+  // Now there are multiple calibration values set
+  // Iterate upwards
+
+  getIntegerParam(P_Range, &curr_range);
+  for (range_idx = 0; range_idx<MAX_RANGES; range_idx++)
+    {
+      if (cal_values_[range_idx].cal_present == 1) // We have found a calibration
+	{
+	  if (range_idx < curr_range) // Range lower
+	    {
+	      lower_bound = range_idx; // Note a new lower value
+	    }
+	  else if (range_idx == curr_range) // Exact match
+	    {
+	      for (channel_idx = 0; channel_idx<4; channel_idx++)
+		{
+		  cal_slope_[channel_idx] = cal_values_[range_idx].cal_slope[channel_idx];
+		  cal_offset_[channel_idx] = cal_values_[range_idx].cal_offset[channel_idx];
+		}
+	      return;
+	    }
+	  else 			// Range greater than index
+	    {
+	      upper_bound = range_idx;
+	      break;		// No need to check more
+	    }
+	}
+    } // for range_idx=...
+
+  if ((lower_bound >= 0) && (upper_bound < 0)) //only lower values found
+    {
+      for (channel_idx = 0; channel_idx < 4; channel_idx++)
+	{
+	  cal_slope_[channel_idx] = cal_values_[lower_bound].cal_slope[channel_idx];
+	  cal_offset_[channel_idx] = cal_values_[lower_bound].cal_offset[channel_idx];
+	}
+    }
+  else if ((lower_bound < 0) && (upper_bound >= 0)) //only upper values found
+    {
+      for (channel_idx = 0; channel_idx < 4; channel_idx++)
+	{
+	  cal_slope_[channel_idx] = cal_values_[upper_bound].cal_slope[channel_idx];
+	  cal_offset_[channel_idx] = cal_values_[upper_bound].cal_offset[channel_idx];
+	}
+    }
+  else				// Bounded on both sides
+    {
+      range_low = ranges_[lower_bound];
+      range_high = ranges_[upper_bound];
+      range_set = ranges_[curr_range];
+      
+      for (channel_idx = 0; channel_idx<4; channel_idx++)
+	{
+	  curr_slope = cal_values_[lower_bound].cal_slope[channel_idx]*(range_high-range_set) + cal_values_[upper_bound].cal_slope[channel_idx]*(range_set-range_low);
+	  curr_slope = curr_slope/(range_high-range_low);
+	  curr_offset = cal_values_[lower_bound].cal_offset[channel_idx]*(range_high-range_set) + cal_values_[upper_bound].cal_offset[channel_idx]*(range_set-range_low);
+	  curr_offset = curr_offset/(range_high-range_low);
+	  cal_slope_[channel_idx] = curr_slope;
+	  cal_offset_[channel_idx] = curr_offset;
+	} // for channel_idx
+      return;
+    }
+
+  return;
+}
+  
+
 /** Report  parameters 
   * \param[in] fp The file pointer to write to
   * \param[in] details The level of detail requested

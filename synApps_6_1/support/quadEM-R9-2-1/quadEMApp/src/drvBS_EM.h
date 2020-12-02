@@ -84,6 +84,12 @@ typedef struct {
   double cal_offset[4];		/* Calibration offset in nA */
 } Calibration_Data;
 
+typedef struct
+{
+  int lower_bound;		/* Set to -1 for not found */
+  int upper_bound;		/* Set to -1 for not found */
+} Cal_Find; 
+
 /** Class to control the NSLS Precision Integrator */
 class drvBS_EM : public drvQuadEM {
 public:
@@ -163,8 +169,9 @@ private:
     Bs_Reg_T pidRegData_[21];	/* Holds parameters for the PID registers */
     Calibration_Data cal_values_[MAX_RANGES]; /* One calibration per range */
     int num_cals_;			     /* Number of calibration values */
-    double cal_slope_;			     /* The calculated slope */
-    double cal_offset_;			     /* The calculated offset */
+    double cal_slope_[4];			     /* The calculated slope */
+    double cal_offset_[4];			     /* The calculated offset */
+
     asynStatus findModule();
     asynStatus writeReadMeter();
     asynStatus getFirmwareVersion();
