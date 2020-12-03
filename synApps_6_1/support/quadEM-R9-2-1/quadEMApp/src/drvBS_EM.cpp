@@ -1002,6 +1002,21 @@ asynStatus drvBS_EM::computeScaleFactor()
 	  }
 	fflush(stdout);
       }
+
+    while (1)			// XXX Always do this, but break at end
+      {
+	int channel_idx;
+
+	for (channel_idx = 0; channel_idx<4; channel_idx++)
+	  {
+	    epicsSnprintf(outString_, sizeof(outString_), "wr %i %i\r\n", 230+channel_idx, (int) (cal_slope_[channel_idx]*10000));
+	    writeReadMeter();	// XXX Doesn't test return value
+	    epicsSnprintf(outString_, sizeof(outString_), "wr %i %i\r\n", 234+channel_idx, (int) (cal_offset_[channel_idx]*10000));
+	    writeReadMeter();
+	  }
+	break;			// Leave this loop -- one time only
+      }
+    
     ///XXX FIXME TODO Set here to allow setIntegrationTime to shift current
     //scaleFactor_ = ranges_[range]*1e-12 * FREQUENCY / (1.0 * 1e6)
     //              / MAX_COUNTS / (double)valuesPerRead;
