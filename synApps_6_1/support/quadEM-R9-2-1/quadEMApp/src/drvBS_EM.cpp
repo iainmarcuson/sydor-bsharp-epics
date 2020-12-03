@@ -691,6 +691,8 @@ void drvBS_EM::readThread(void)
 		//12 bytes offset of payload, so 3 ints
 		data[i] = raw_to_current(data_int[j*4+i+3]);
 		///TODO Add in calibration
+		data[i] = data[i] - (cal_offset_[i]*1e-9);
+		data[i] = data[i]/cal_slope_[i];
 	      }      
 	      ///
 	      ///printf("Computing positions.\n");
