@@ -29,6 +29,12 @@ desync_packets = 0;
 DEFAULT_SELECT = 0.02;
 select_timeout = DEFAULT_SELECT;
 
+# Parameters for automatic querying
+QUERY_TIMEOUT = 0.08;           # Faster than the nominal 0.1
+query_old_time = 0;
+query_new_time = 0;             # Old and new times for determining timeout
+b_send_query = True;            # Always start with sending a query
+
 
 
 
@@ -209,8 +215,12 @@ go_return = bsharp_sock.recv(1024);
 #print("Go command reported: {}".format(go_return.decode()));
 bsharp_sock.send(b'wr 154 0\r\n');
 go_return = bsharp_sock.recv(1024);
-bsharp_sock.send(b'bc 152 2\r\n');
-go_return = bsharp_sock.recv(1024);
+
+#/// Broadcast disabled for now
+#bsharp_sock.send(b'bc 152 2\r\n');
+#go_return = bsharp_sock.recv(1024);
+
+
 ### Not actually a function bsharp_sock.flush();
 #go_return = bsharp_sock.recv(1024);
 #print("Reg 1 is :{}".format(go_return.decode()));
@@ -250,6 +260,15 @@ try:
 
         ## YF]
 
+        # Code to see if we need to do a query
+        query_new_time = time.time();                          # Fetch new time
+        if (query_new_time - query_old_time) >= QUERY_TIMEOUT: # Timeout reached
+            b_send_query = True;                               
+
+        if b_send_query:        # Time to send a query
+            query_old_time = query_new_time; # Update for next set
+            b_send_query = False;            # Wait for next timeout
+            bsharp_sock.send(b'rb1');        # Send a read command
 
         curr_minutes = int(time.time()/10);  ## YF
 
@@ -383,8 +402,8 @@ try:
 
                 #print("Find index is: {}\tText is {},{}.".format(curr_bsharp.find(b'rb'),chr(curr_bsharp[0]),curr_bsharp[1]));
                 #print("Length is: {}".format(len(curr_bsharp)));
-                if (curr_bsharp.find(b'bb') == 0) or (curr_bsharp.find(b'B\x01') == 0): # Found first header
-                    if (curr_bsharp.find(b'bb') == 0):
+                if (curr_bsharp.find(b'bb') == 0) or (curr_bsharp.find(b'B\x01') == 0) or (curr_bsharp.find(b'rb1') == 0): # Found first header
+                    if (curr_bsharp.find(b'bb') == 0) or (curr_bsharp.find(b'rb1') == 0):
                         delimit_idx = curr_bsharp.find(b'>');
                     else:
                         delimit_idx = -1; # Incremented below
