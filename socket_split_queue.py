@@ -6,7 +6,7 @@ import traceback
 import time
 
 BSHARP_ADDR = '192.168.11.91';
-
+BSHARP_ADDR = '127.0.0.1';
 packet_count = 0;
 CMD_LEN = 32;                  # Maximum length of command to try to filter out.  Actual max for a command is 25, but add a litle padding.
 
@@ -252,11 +252,12 @@ try:
 
         select_timeout = DEFAULT_SELECT; # Always reset to default, as sometimes we might do a fast timeout;
         
-        ## YF[
+        #///Disable resume broadcast since simulating no broadcast
+	## YF[
         if len(read_list) == 0:
             if FLUSH:
                 FLUSH = False
-                bsharp_sock.send(b'bc 152 2\r\n');   # RE-START  Transmitting
+                #///bsharp_sock.send(b'bc 152 2\r\n');   # RE-START  Transmitting
 
         ## YF]
 
@@ -340,14 +341,14 @@ try:
                 # XXX FIXME This is to flush the buffer if we get out of sync.
                 # The number should probably change.
                 if ALLOW_FLUSH:
-                    if (len(from_bsharp_socket)) > (440*2+32): # Two data transmissions plus a command
+                    if (len(from_bsharp_socket)) > (1700*2+32): # Two data transmissions plus a command
                         from_bsharp_socket = b'';
                         FLUSH = True;
                         FIFO_DIRTY = True;
                         ## YF[
                         select_timeout = 0.001;   # If packets are too rapid, clear quickly
-                        print("Set Broadcast off")
-                        bsharp_sock.send(b'bs 152 2\r\n');   # STOP Transmitting - Turn off Broadcast mode
+                        #print("Set Broadcast off")
+                        #bsharp_sock.send(b'bs 152 2\r\n');   # STOP Transmitting - Turn off Broadcast mode
                         continue
 
                 ## YF]
