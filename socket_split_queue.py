@@ -5,8 +5,8 @@ import os
 import traceback
 import time
 
-BSHARP_ADDR = '192.168.11.91';
-BSHARP_ADDR = '127.0.0.1';
+BSHARP_ADDR = '192.168.11.116';
+
 packet_count = 0;
 CMD_LEN = 32;                  # Maximum length of command to try to filter out.  Actual max for a command is 25, but add a litle padding.
 
@@ -34,7 +34,7 @@ QUERY_TIMEOUT = 0.08;           # Faster than the nominal 0.1
 query_old_time = 0;
 query_new_time = 0;             # Old and new times for determining timeout
 b_send_query = True;            # Always start with sending a query
-
+query_count = 0;                # Count queries requested
 
 
 
@@ -48,7 +48,7 @@ def bsharp_all_recv(in_bytes):
     log_len_inbytes = len(in_bytes)
     #YF]
 
-    if in_bytes.find(b'bb') == 0: # Data
+    if ((in_bytes.find(b'bb') == 0) or (in_bytes.find(b'rb')==0)): # Data
         #print("bb size:  {}".format(len(in_bytes)));
         delimit_idx = in_bytes.find(b'\x01');
         if (delimit_idx < 0):
@@ -72,7 +72,10 @@ def bsharp_all_recv(in_bytes):
             #               | | +-------------> Size bytes
             #               | +---------------> "B\x01"
             #               +-----------------> "rb>"
-            
+
+        #///Change for rb1>
+        if (in_bytes.find(b'rb')==0):
+            expected_size = expected_size+1;
 
         if len(in_bytes) >= expected_size:
             #print("bb returning {} of {} bytes.".format(len(in_bytes[0:expected_size]), len(in_bytes)));
@@ -210,15 +213,20 @@ data_out_count = 0;
 curr_minutes = int(time.time()/60);
 old_minutes = int(time.time()/60);
 
-bsharp_sock.send(b'bs 0 4\r\n');
-go_return = bsharp_sock.recv(1024);
 #print("Go command reported: {}".format(go_return.decode()));
 bsharp_sock.send(b'wr 154 0\r\n');
 go_return = bsharp_sock.recv(1024);
+print("Disabled broadcast return.");
 
 #/// Broadcast disabled for now
-#bsharp_sock.send(b'bc 152 2\r\n');
-#go_return = bsharp_sock.recv(1024);
+bsharp_sock.send(b'bs 152 2\r\n');
+go_return = bsharp_sock.recv(1024);
+print("Disabled broadcast.");
+
+#Start Acquisition
+bsharp_sock.send(b'bs 0 4\r\n');
+go_return = bsharp_sock.recv(1024);
+print("Sent go command.");
 
 
 ### Not actually a function bsharp_sock.flush();
@@ -270,6 +278,10 @@ try:
             query_old_time = query_new_time; # Update for next set
             b_send_query = False;            # Wait for next timeout
             bsharp_sock.send(b'rb1');        # Send a read command
+            query_count = (query_count + 1) % 100; # Roughly 10 seconds
+            if query_count == 0:
+                print("Sent query.");
+            
 
         curr_minutes = int(time.time()/10);  ## YF
 
@@ -372,7 +384,7 @@ try:
                     data_in_count = data_in_count +1;
                     ###
                     #print("Got a B1");
-                elif (read_bytes.find(b'bb') == 0):
+                elif ((read_bytes.find(b'bb') == 0) or (read_bytes.find(b'rb') == 0)):
                     data_pending = DATA_CURR;
                     data_in_count = data_in_count + 1;
                 else:           # A command
