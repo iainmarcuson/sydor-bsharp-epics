@@ -17,7 +17,7 @@ RECV_FLUSH = 2;                 # If an erroneous packet is detected, signal to 
 
 
 ## YF [
-ALLOW_FLUSH = True
+ALLOW_FLUSH = False # #TODO: cleanup  ..True
 FLUSH = False
 #internal_log = []    # use this to debug
 internal_log = None   # use this for release
@@ -30,7 +30,7 @@ DEFAULT_SELECT = 0.02;
 select_timeout = DEFAULT_SELECT;
 
 # Parameters for automatic querying
-QUERY_TIMEOUT = 0.08;           # Faster than the nominal 0.1
+QUERY_TIMEOUT = 0.15;           # Faster than the nominal 0.1
 query_old_time = 0;
 query_new_time = 0;             # Old and new times for determining timeout
 b_send_query = True;            # Always start with sending a query
@@ -81,7 +81,7 @@ def bsharp_all_recv(in_bytes):
             #print("bb returning {} of {} bytes.".format(len(in_bytes[0:expected_size]), len(in_bytes)));
             if internal_log != None:
                internal_log.append( str(log_len_inbytes) + ", " +  "RF, L70")
-            return (RECV_FULL, in_bytes[0:expected_size]);
+            return (RECV_FULL, in_bytes[0:(expected_size-1)]);
         else:
             if internal_log != None:
                internal_log.append( str(log_len_inbytes) + ", " +  "RP, L76")
@@ -187,6 +187,7 @@ cmd_get_time = 0.0;
 cmd_finish_time = 0.0;
 # Create the connection to the B#
 bsharp_sock = socket.socket();
+bsharp_sock.settimeout(5.0);
 bsharp_sock.connect((BSHARP_ADDR, BSHARP_PORT));
 
 # Create the command and data sockets
@@ -277,7 +278,7 @@ try:
         if b_send_query:        # Time to send a query
             query_old_time = query_new_time; # Update for next set
             b_send_query = False;            # Wait for next timeout
-            bsharp_sock.send(b'rb1');        # Send a read command
+            bsharp_sock.send(b'rb1\r\n');        # Send a read command
             query_count = (query_count + 1) % 100; # Roughly 10 seconds
             if query_count == 0:
                 print("Sent query.");
