@@ -50,7 +50,7 @@ if [ ! -z $1 ];then
                 ./st.cmd
 		kill $SPLIT_ID
 
-	elif [ $1 = 'startIOC' ];then
+	elif [ $1 = 'startioc' ];then
 	    printf "\n**Load calibration\n"
 	    if [ -z $2 ]; then
 		echo "***No calibration set.  Defaulting to 'direct'"
