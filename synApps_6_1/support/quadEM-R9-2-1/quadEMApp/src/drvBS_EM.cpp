@@ -39,7 +39,7 @@
 #define BROADCAST_PORT 37747
 ///XXX TODO Change according to hardware
 ///#define MIN_INTEGRATION_TIME 400e-6
-#define MIN_INTEGRATION_TIME 880e-6
+#define MIN_INTEGRATION_TIME 810e-6
 #define MAX_INTEGRATION_TIME 1.0
 #define FREQUENCY 1e6
 // 2^20 is maximum counts for 20-bit ADC
@@ -80,7 +80,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 		    {param_reg, 213, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //9 Y D term
 		      {param_reg, 214, 0xFFFFFFFF, reg_int, 0.0, 5.0, 0, 50000},	 //10 Y Max V
 			{param_reg, 215, 0xFFFFFFFF, reg_int, 0.0, 10.0, 0, 100000},	 //11 Y Voltage Offset
-	    {param_multibit, 240, 0x00000007, reg_int, 0, 0, 0 , 0}, //12 DAC mode
+  {param_multibit, 240<<16 + 1, 0x00000007, reg_int, 0, 0, 0 , 0}, //12 DAC mode
 	      {param_bit, 220, 0x4, reg_int, 0, 0, 0, 0}, //13 PID enable
 		{param_bit, 220, 0x2, reg_int, 0, 0, 0, 0}, //14 Cutout enable
 		  {param_bit, 220, 0x1, reg_int, 0, 0, 0, 0}, //15 Auto reenable
@@ -406,6 +406,8 @@ void drvBS_EM::process_reg(int reg_lookup, double value)
       char response_string[256];
       
       //First, read in the value
+      ///
+      /*
       epicsSnprintf(outString_, sizeof(outString_), "rr %d?\r\n", curr_item.reg_num);
       writeReadMeter();
       sscanf(inString_, "%[^\n]", response_string);
@@ -424,7 +426,9 @@ void drvBS_EM::process_reg(int reg_lookup, double value)
       sscanf(&(delim_find[1]), "%i", &reg_start_value); // Start after the delimiter
       reg_start_value = reg_start_value & ~curr_item.bit_mask; // Mask out the bits to manipulate
       reg_start_value = reg_start_value | (unsigned int) value; // Or in the new value from the Db file
-      epicsSnprintf(outString_, sizeof(outString_), "wr %d %i\r\n", curr_item.reg_num, reg_start_value);
+      */
+      
+      epicsSnprintf(outString_, sizeof(outString_), "wr %d %i\r\n", curr_item.reg_num, (unsigned int) value);
       return;
     }
 
