@@ -88,7 +88,8 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 		      {param_reg, 222, 0xFFFFFFFF, reg_int, 0, 1e6, 0, (int) 1e9}, //17 Cutout reenable hysteresis
 			{param_reg, 239, 0xFFFFFFFF, reg_int, 0, 1e5, 0, (int) 1e9}, //18 XXX FIXME I-to-V value?
 			  {param_bit, 240, 0x8, reg_int, 0, 0, 0, 0}, //19 External trigger
-			    {param_bit, 240, 0x10, reg_int, 0, 0, 0, 0} //20 PID Inhibit
+  {param_bit, 240, 0x10, reg_int, 0, 0, 0, 0}, //20 PID Inhibit
+  {param_multibit, (220<<16)+1, 0x18, reg_int, 0, 0, 0, 0} //21 PID Position track
 }
   
 {
@@ -239,6 +240,8 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     createParam(P_PIDIVString, asynParamFloat64, &P_Fdbk_I2VScale);
     createParam(P_PIDExtTrigString, asynParamInt32, &P_Fdbk_ExtTrig);
     createParam(P_PIDInhibitString, asynParamInt32, &P_Fdbk_PIDInhibit);
+    createParam(P_PIDPosTrackString, asynParamInt32, &P_Fdbk_PosTrack);
+    
     //Set the PID register parameters
     /*pidRegData_ = {
       {param_reg, 200, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //Setpoint
@@ -751,6 +754,10 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
   else if (function == P_Fdbk_PIDInhibit)
     {
       reg_lookup = 20;
+    }
+  else if (function == P_Fdbk_PosTrack)
+    {
+      reg_lookup = 21;
     }
   
   if (reg_lookup >= 0)

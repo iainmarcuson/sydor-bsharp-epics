@@ -500,3 +500,34 @@ record(ai, "$(P)$(R)PID_IToV_RBV")
 	field(PREC, "3")
 }
 
+# Position Tracking
+
+record(mbbo, "$(P)$(R)PID_PosTrack")
+{
+	field(DESC, "Position Tracking")
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT) 0)PID_POSTRACK")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "Active High")
+	field(ONVL, "8")
+	field(TWST, "Active Low")
+	field(TWVL, "16")
+	field(VAL, "0")
+	field(PINI, "YES")
+}
+
+record(mbbi, "$(P)$(R)PID_PosTrack_RBV")
+{
+	field(DESC, "Position Tracking")
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT) 0)PID_POSTRACK")
+	field(ZRST, "Off")
+	field(ZRVL, "0")
+	field(ONST, "Active High")
+	field(ONVL, "8")
+	field(TWST, "Active Low")
+	field(TWVL, "16")
+	field(VAL, "0")
+	field(SCAN, "I/O Intr")
+}
