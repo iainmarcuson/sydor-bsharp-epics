@@ -80,7 +80,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 		    {param_reg, 213, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //9 Y D term
 		      {param_reg, 214, 0xFFFFFFFF, reg_int, 0.0, 5.0, 0, 50000},	 //10 Y Max V
 			{param_reg, 215, 0xFFFFFFFF, reg_int, 0.0, 10.0, 0, 100000},	 //11 Y Voltage Offset
-  {param_multibit, 240<<16 + 1, 0x00000007, reg_int, 0, 0, 0 , 0}, //12 DAC mode
+  {param_multibit, (240<<16) + 1, 0x00000007, reg_int, 0, 0, 0 , 0}, //12 DAC mode
 	      {param_bit, 220, 0x4, reg_int, 0, 0, 0, 0}, //13 PID enable
 		{param_bit, 220, 0x2, reg_int, 0, 0, 0, 0}, //14 Cutout enable
 		  {param_bit, 220, 0x1, reg_int, 0, 0, 0, 0}, //15 Auto reenable
