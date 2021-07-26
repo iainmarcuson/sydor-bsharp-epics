@@ -89,7 +89,8 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 			{param_reg, 239, 0xFFFFFFFF, reg_int, 0, 1e5, 0, (int) 1e9}, //18 XXX FIXME I-to-V value?
 			  {param_bit, 240, 0x8, reg_int, 0, 0, 0, 0}, //19 External trigger
   {param_bit, 240, 0x10, reg_int, 0, 0, 0, 0}, //20 PID Inhibit
-  {param_multibit, (220<<16)+1, 0x18, reg_int, 0, 0, 0, 0} //21 PID Position track
+  {param_multibit, (220<<16)+1, 0x18, reg_int, 0, 0, 0, 0}, //21 PID Position track
+  {param_reg, 241, 0xFFFFFFFF, reg_int, 0, 1.0, 0, (int) 1e4} //22 PID Position tracking radius
 }
   
 {
@@ -241,6 +242,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     createParam(P_PIDExtTrigString, asynParamInt32, &P_Fdbk_ExtTrig);
     createParam(P_PIDInhibitString, asynParamInt32, &P_Fdbk_PIDInhibit);
     createParam(P_PIDPosTrackString, asynParamInt32, &P_Fdbk_PosTrack);
+    createParam(P_PIDPosTrackRadString, asynParamFloat64, &P_Fdbk_PosTrackRad);
     
     //Set the PID register parameters
     /*pidRegData_ = {
@@ -759,7 +761,7 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
     {
       reg_lookup = 21;
     }
-  
+    
   if (reg_lookup >= 0)
     {
       process_reg(reg_lookup, value);	// Get the command string for the register lookup set
@@ -863,7 +865,10 @@ asynStatus drvBS_EM::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     {
       reg_lookup = 18;
     }
-	
+  else if (function == P_Fdbk_PosTrackRad)
+    {
+      reg_lookup = 22;
+    }
     
   if (reg_lookup >= 0)
     {

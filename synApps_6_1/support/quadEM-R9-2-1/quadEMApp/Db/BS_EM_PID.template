@@ -531,3 +531,27 @@ record(mbbi, "$(P)$(R)PID_PosTrack_RBV")
 	field(VAL, "0")
 	field(SCAN, "I/O Intr")
 }
+
+
+#Position Tracking Radius
+
+record(ao, "$(P)$(R)PID_Pos_Rad")
+{
+	field(DESC, "Target Radius")
+	field(DTYP, "asynFloat64")
+	field(OUT, "@asyn($(PORT) 0)PID_TRACK_RAD")
+	field(DRVL, "0.0")
+	field(DRVH, "1.0")
+	field(VAL, "0")
+	field(PINI, "YES")
+	field(PREC, "3")
+}
+
+record(ai, "$(P)$(R)PID_Pos_Rad_RBV")
+{
+	field(DESC, "Target Radius")
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT) 0)PID_TRACK_RAD")
+	field(SCAN, "I/O Intr")
+	field(PREC, "3")
+}
