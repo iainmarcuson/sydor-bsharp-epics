@@ -45,6 +45,9 @@
 // 2^20 is maximum counts for 20-bit ADC
 #define MAX_COUNTS ((0xFFFFF-0x01000)*1.0)
 #define ADC_OFFSET 0x01000
+
+const int PRINT_RAW_DATA = 0;
+
 typedef enum {
   Phase0, 
   Phase1, 
@@ -698,12 +701,25 @@ void drvBS_EM::readThread(void)
 		(pingPong == PhaseBoth)) {
 	      for (i=0; i<4; i++) {
 		//12 bytes offset of payload, so 3 ints
+
+
+		if (PRINT_RAW_DATA)
+		  {
+		    printf("%07d\t", data_int[j*4+i+3]);
+		  }
+
 		data[i] = raw_to_current(data_int[j*4+i+3]);
 		///TODO Add in calibration
 		data[i] = data[i] - (cal_offset_[i]*1e-9);
 		data[i] = data[i]/cal_slope_[i];
-	      }      
-	      ///
+	      }
+	      
+	      if (PRINT_RAW_DATA)
+		{
+		  printf("\n");
+		  fflush(stdout);
+		}
+	      
 	      ///printf("Computing positions.\n");
 	      fflush(stdout);
 	      computePositions(data);
@@ -943,6 +959,7 @@ asynStatus drvBS_EM::setIntegrationTime(epicsFloat64 value)
 {
     asynStatus status;
     int time_scale_num;	// Number to send that corresponds to time
+
     /* Make sure the integration time is valid. If not change it and put back in parameter library */
     if (value < MIN_INTEGRATION_TIME) {
         value = MIN_INTEGRATION_TIME;
@@ -1003,6 +1020,7 @@ asynStatus drvBS_EM::computeScaleFactor()
     getIntegerParam(P_ValuesPerRead,  &valuesPerRead);
     getIntegerParam(P_Range,          &range);
     getDoubleParam(P_IntegrationTime, &integrationTime);
+
     scaleFactor_ = ranges_[range]*1e-12 * FREQUENCY / (integrationTime * 1e6)
                   / MAX_COUNTS / (double)valuesPerRead;
     acqFactor_ = ranges_[range]*1e-12*FREQUENCY/(integrationTime*1e6)/(double) valuesPerRead;

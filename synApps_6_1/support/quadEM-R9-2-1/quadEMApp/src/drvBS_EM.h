@@ -46,7 +46,7 @@
 #define P_PIDExtTrigString         "PID_XTRIG"                   /* asynInt32 */
 #define P_PIDInhibitString         "PID_INHIBIT"                 /* asynInt32 */
 #define P_PIDPosTrackString        "PID_POSTRACK"                /* asynInt32 */
-
+#define P_PIDPosTrackRadString    "PID_TRACK_RAD"               /* asynFloat64 */
 typedef struct {
     int moduleID;
     char moduleIP[MAX_IPNAME_LEN];
@@ -132,6 +132,7 @@ protected:
     int P_Fdbk_ExtTrig;
     int P_Fdbk_PIDInhibit;
   int P_Fdbk_PosTrack;
+  int P_Fdbk_PosTrackRad;
   
     /* These are the methods we implement from quadEM */
     virtual asynStatus setAcquire(epicsInt32 value);
@@ -168,7 +169,7 @@ private:
     double adcFactor_;		/* Scaling factor from ADC parameters */
     double adcOffset_;		/* Offset from ADC parameters */
 
-    Bs_Reg_T pidRegData_[22];	/* Holds parameters for the PID registers */
+    Bs_Reg_T pidRegData_[23];	/* Holds parameters for the PID registers */
     Calibration_Data cal_values_[MAX_RANGES]; /* One calibration per range */
     int num_cals_;			     /* Number of calibration values */
     double cal_slope_[4];			     /* The calculated slope */
