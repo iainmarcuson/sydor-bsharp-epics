@@ -202,7 +202,7 @@ record(ao, "$(P)$(R)PIDY_KD")
 	     field(DESC, "PID Y D term")
 	     field(DTYP, "asynFloat64")
 	     field(OUT, "@asyn($(PORT) 0)PIDY_KD")
-	     field(VAL, "10000")
+	     field(VAL, "0")
 	     field(PINI, "YES")
 	     field(PREC, "3")
 }
@@ -554,4 +554,16 @@ record(ai, "$(P)$(R)PID_Pos_Rad_RBV")
 	field(INP, "@asyn($(PORT) 0)PID_TRACK_RAD")
 	field(SCAN, "I/O Intr")
 	field(PREC, "3")
+}
+
+# Overrides for QuadEM parameters
+
+record(ao, "$(P)$(R)PositionScaleX")
+{
+	field(VAL, "1.")
+}
+
+record(ao, "$(P)$(R)PositionScaleY")
+{
+	field(VAL, "1.")
 }
