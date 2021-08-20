@@ -41,7 +41,7 @@ if [ ! -z $1 ];then
 		CAL_SET=$2
 	    fi
 	    python3 calibration_select.py $CAL_SET
-            printf "\n**Initialize IOC\n"
+	    printf "\n**Initialize IOC\n"
 	    python3 ../../../socket_split_queue.py &
 	    SPLIT_ID=$!
 	    echo "Starting networking; please wait."
@@ -61,6 +61,11 @@ if [ ! -z $1 ];then
 		CAL_SET=$2
 	    fi
 	    python3 calibration_select.py $CAL_SET
+	    if [ $? -ne 0 ]; then  # Python couldn't find calibration line
+	       echo "***Calibration set \"$2\" not found.  Review dpbm_calibration.ini for available sets."
+	       exit 1
+	    fi
+	       
             printf "\n**Initialize IOC\n"
 	    #python3 ../../../socket_split_queue.py &
 	    #SPLIT_ID=$!
