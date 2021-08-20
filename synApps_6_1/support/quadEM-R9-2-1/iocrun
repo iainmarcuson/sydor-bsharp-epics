@@ -18,7 +18,8 @@ help(){
 }
 
 function finish {
-    kill $SPLIT_ID
+    #kill $SPLIT_ID
+    true
 }
 
 trap finish EXIT
@@ -53,8 +54,9 @@ if [ ! -z $1 ];then
 	elif [ $1 = 'startioc' ];then
 	    printf "\n**Load calibration\n"
 	    if [ -z $2 ]; then
-		echo "***No calibration set.  Defaulting to 'direct'"
-		CAL_SET="direct"
+		echo "***No calibration set.  Review calibrations in dbpm_calibration.ini"
+		echo "Usage: ./iocrun startioc [calibration name]"
+		exit 1
 	    else
 		CAL_SET=$2
 	    fi
