@@ -10,6 +10,8 @@ STATE_IGNORE=0;
 out_file = open(out_filename, 'w');
 in_file = open(in_filename, 'r');
 
+found_cal = 0; # Boolean indicating if a calibration line was found
+
 cal_state = STATE_IGNORE;       # Start out not copying lines
 find_string = '[{}_range'.format(calibration_name); # Get pattern
 for curr_line in in_file:
@@ -17,6 +19,7 @@ for curr_line in in_file:
     out_line = '\n';            # Start with a benign line
     if cal_state == STATE_IGNORE:
         if strip_line.startswith(find_string):
+            found_cal = 1; # Note we have found a line.  Assume the calibration is valid.
             cal_state = STATE_COPY; # Note that we will copy lines now
             split_line = strip_line.split('_',1); # Separate name from param
             split_line[0] = '[direct';            # Rewrite with used name
@@ -39,3 +42,8 @@ for curr_line in in_file:
 out_file.close();
 in_file.close();
 
+if found_cal != 0:              # XXX Found at least one line
+    sys.exit(0);                # Assume good and return success
+else:                           # No lines found
+    sys.exit(1);                # Report failure
+    
