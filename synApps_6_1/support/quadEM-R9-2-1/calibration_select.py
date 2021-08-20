@@ -39,11 +39,15 @@ for curr_line in in_file:
     if cal_state == STATE_COPY:
         out_file.write(out_line);
 
-out_file.close();
-in_file.close();
 
+exit_code = 0;                  # Set a default exit code
 if found_cal != 0:              # XXX Found at least one line
-    sys.exit(0);                # Assume good and return success
+    out_file.write("Name:{}\n".format(calibration_name)); # Note the actual name for EPICS
+    exit_code = 0;                # Assume good and return success
 else:                           # No lines found
-    sys.exit(1);                # Report failure
+    exit_code = 1;              # Report failure
     
+out_file.close();
+in_file.close();                # Close the files
+
+sys.exit(exit_code);            # Report the exit status
