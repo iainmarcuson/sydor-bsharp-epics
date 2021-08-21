@@ -47,6 +47,9 @@
 #define P_PIDInhibitString         "PID_INHIBIT"                 /* asynInt32 */
 #define P_PIDPosTrackString        "PID_POSTRACK"                /* asynInt32 */
 #define P_PIDPosTrackRadString    "PID_TRACK_RAD"               /* asynFloat64 */
+
+#define P_CalNameString   "CAL_NAME" /* asynOctet */
+
 typedef struct {
     int moduleID;
     char moduleIP[MAX_IPNAME_LEN];
@@ -133,7 +136,8 @@ protected:
     int P_Fdbk_PIDInhibit;
   int P_Fdbk_PosTrack;
   int P_Fdbk_PosTrackRad;
-  
+
+  int P_CalName;
     /* These are the methods we implement from quadEM */
     virtual asynStatus setAcquire(epicsInt32 value);
     virtual asynStatus setPingPong(epicsInt32 value);

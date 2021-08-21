@@ -27,6 +27,8 @@ asynSetTraceIOMask("$(PORT)",0,2)
 
 < $(QUADEM)/iocBoot/saveRestore.cmd
 
+callbackSetQueueSize(5000)
+
 iocInit()
 
 #Set an ID Number
@@ -59,6 +61,10 @@ dbpf $(PREFIX)$(RECORD)Geometry 1
 
 #Set Serial NUmber
 dbpf $(PREFIX)$(RECORD)B4SerNum $(SERIAL_NUMBER)
+
+# Set the calibration name
+< calname.cmd
+
 
 #Start historical monitoring
 epicsThreadSleep 5

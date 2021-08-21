@@ -50,4 +50,11 @@ else:                           # No lines found
 out_file.close();
 in_file.close();                # Close the files
 
+
+cal_name_filename = 'iocBoot/iocBS_EM/calname.cmd';
+
+cal_name_file = open(cal_name_filename, "w");
+cal_name_file.write("dbpf $(PREFIX)$(RECORD)CalName_RBV \"{}\"\n".format(calibration_name))
+cal_name_file.close();
+
 sys.exit(exit_code);            # Report the exit status

@@ -567,3 +567,15 @@ record(ao, "$(P)$(R)PositionScaleY")
 {
 	field(VAL, "1.")
 }
+
+# Calibration name
+
+record(stringin, "$(P)$(R)CalName_RBV")
+{
+	field(DESC, "Calibration name")
+	field(DTYP, "asynOctetRead")
+	field(VAL, "Unknown")
+	field(INP, "@asyn($(PORT) 0)CAL_NAME")
+	field(SCAN, "I/O Intr")
+	field(PINI, "NO")
+}

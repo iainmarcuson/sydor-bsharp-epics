@@ -189,20 +189,9 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
       {
 	int range_idx;
 
-	printf("No calibration file detected; using defaults.\n");
+	printf("Error: no calibration file detected; rerun iocrun.\n");
 	fflush(stdout);
-	for (range_idx = 0; range_idx < MAX_RANGES; range_idx++)
-	  {
-	    int channel_idx;
-	    cal_values_[range_idx].cal_present = 0; // No calibration
-	    for (channel_idx = 0; channel_idx<4; channel_idx++)
-	      {
-		cal_values_[range_idx].cal_slope[channel_idx] = 1.0; // Make it a NOP just in case
-		cal_values_[range_idx].cal_offset[channel_idx] = 0.0; // Ibid
-	      }
-	  }
-	cal_values_[0].cal_present = 1; // Set to true; NOP set above
-	num_cals_ = 1;			 // Flag one calibration value
+	exit(1);
       }
     else		      // A calibration file was found
       {
@@ -246,6 +235,8 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     createParam(P_PIDInhibitString, asynParamInt32, &P_Fdbk_PIDInhibit);
     createParam(P_PIDPosTrackString, asynParamInt32, &P_Fdbk_PosTrack);
     createParam(P_PIDPosTrackRadString, asynParamFloat64, &P_Fdbk_PosTrackRad);
+
+    createParam(P_CalNameString, asynParamOctet, &P_CalName);
     
     //Set the PID register parameters
     /*pidRegData_ = {
@@ -1169,6 +1160,12 @@ void drvBS_EM::parse_cal_file(FILE *cal_file)
 
       if (args_read == 0)	// Range not found
 	{
+	  if (strstr(curr_line, "Name:") == curr_line) // Calibration set name
+	    {
+	      printf("Calibration Name: \"%s\"\n", &curr_line[5]);
+	      fflush(stdout);
+	      setStringParam(P_CalName, &curr_line[5]); // Copy the name
+	    }
 	  continue;		// Try with next line
 	}
 
@@ -1193,6 +1190,12 @@ void drvBS_EM::parse_cal_file(FILE *cal_file)
 	  args_read = sscanf(curr_line, " Channel%c = \" %lf , %lf \"", &curr_channel, &curr_slope, &curr_offset);
 	  if (args_read != 3)	// Not a valid calibration line
 	    {
+	      if (strstr(curr_line, "Name:") == curr_line) // Calibration set name
+		{
+		  printf("Calibration Name: \"%s\"\n", &curr_line[5]);
+		  fflush(stdout);
+		  setStringParam(P_CalName, &curr_line[5]); // Copy the name
+		}
 	      continue;		// Try again
 	    }
 

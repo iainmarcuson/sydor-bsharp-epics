@@ -74,7 +74,7 @@ if [ ! -z $1 ];then
 	    echo "Starting EPICS."
                 cd iocBoot/iocBS_EM
                 ./st.cmd
-		kill $SPLIT_ID
+		#///kill $SPLIT_ID
 
 		
         elif [ $1 = 'help' ];then
