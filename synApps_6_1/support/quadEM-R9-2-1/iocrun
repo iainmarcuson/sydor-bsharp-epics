@@ -14,7 +14,7 @@ PATH=/usr/lib/epics2/base/bin/linux-x86_64:$PATH
 DIR=`pwd`
 CSSGUI=$DIR/quadEMApp/op/opi/autoconvert/CSS/xbpm_SIEPB4.opi
 help(){
-        printf "Syntax:\n       ./iocrun {Option}\nOptions:\n    {gui}: Start CSS GUI\n  {start}: Boot IOC\n   {help}: This menu\n"
+        printf "Syntax:\n       ./iocrun {Option}\nOptions:\n       {gui}: Start CSS GUI\n  {startioc}: Boot IOC.  You also need specify a calibration set.\n      {help}: This menu\n"
 }
 
 function finish {
@@ -30,27 +30,7 @@ if [ ! -z $1 ];then
 		echo "GUI is $CSSGUI"
 		echo "PREFIX is $PREFIX"
                 echo `./$CSSEXEC --launcher.openfile "$CSSGUI P=$PREFIX,R=$RECORD"`
-
-
-        elif [ $1 = 'start' ];then
-	    printf "\n**Load calibration\n"
-	    if [ -z $2 ]; then
-		echo "***No calibration set.  Defaulting to 'direct'"
-		CAL_SET="direct"
-	    else
-		CAL_SET=$2
-	    fi
-	    python3 calibration_select.py $CAL_SET
-	    printf "\n**Initialize IOC\n"
-	    python3 ../../../socket_split_queue.py &
-	    SPLIT_ID=$!
-	    echo "Starting networking; please wait."
-	    sleep 4
-	    echo "Starting EPICS."
-                cd iocBoot/iocBS_EM
-                ./st.cmd
-		kill $SPLIT_ID
-
+		
 	elif [ $1 = 'startioc' ];then
 	    printf "\n**Load calibration\n"
 	    if [ -z $2 ]; then
