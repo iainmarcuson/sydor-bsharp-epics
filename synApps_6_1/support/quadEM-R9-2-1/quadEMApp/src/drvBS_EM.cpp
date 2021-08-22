@@ -272,7 +272,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     ///Parameters to set
     setIntegerParam(P_Range, 0);
     setIntegerParam(P_ValuesPerRead, 5);
-    setDoubleParam(P_IntegrationTime, 10e-6);
+    setDoubleParam(P_IntegrationTime, 1810e-6);
     setDoubleParam(P_SampleTime, 20e-6);
     setIntegerParam(P_NumAverage, 25);
 
@@ -951,6 +951,10 @@ asynStatus drvBS_EM::setIntegrationTime(epicsFloat64 value)
     asynStatus status;
     int time_scale_num;	// Number to send that corresponds to time
 
+    ///
+    printf("setIntegrationTime Raw Value: %f\n", value);
+    fflush(stdout);
+    
     /* Make sure the integration time is valid. If not change it and put back in parameter library */
     if (value < MIN_INTEGRATION_TIME) {
         value = MIN_INTEGRATION_TIME;

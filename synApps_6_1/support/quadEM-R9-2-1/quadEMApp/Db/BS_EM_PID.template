@@ -3,6 +3,9 @@
 ### TODO Not that PIDX may be replaced with PID(Dollarsign CHAN) in the future for modularity
 ### Some of the work may be accopmplished by #include-ing a module file with the String parameter as a #define
 
+### ///Fanouts -- Testing File Here
+include "fdbk_send.db"
+
 ### PID X Terms
 
 record(ao, "$(P)$(R)PIDX_SP")
@@ -578,4 +581,12 @@ record(stringin, "$(P)$(R)CalName_RBV")
 	field(INP, "@asyn($(PORT) 0)CAL_NAME")
 	field(SCAN, "I/O Intr")
 	field(PINI, "NO")
+}
+
+# Integration Time Overrides
+
+record(ao, "$(P)$(R)IntegrationTime")
+{
+	field(VAL, "0.04")
+	field(PINI, "YES")
 }
