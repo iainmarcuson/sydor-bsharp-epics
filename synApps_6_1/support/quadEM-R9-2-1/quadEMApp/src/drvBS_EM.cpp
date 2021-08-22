@@ -237,7 +237,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     createParam(P_PIDPosTrackRadString, asynParamFloat64, &P_Fdbk_PosTrackRad);
 
     createParam(P_CalNameString, asynParamOctet, &P_CalName);
-    
+    createParam(P_MaxCurrentString, asynParamFloat64, &P_MaxCurrent);
     //Set the PID register parameters
     /*pidRegData_ = {
       {param_reg, 200, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //Setpoint
@@ -272,7 +272,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     ///Parameters to set
     setIntegerParam(P_Range, 0);
     setIntegerParam(P_ValuesPerRead, 5);
-    setDoubleParam(P_IntegrationTime, 1810e-6);
+    setDoubleParam(P_IntegrationTime, 810e-6);
     setDoubleParam(P_SampleTime, 20e-6);
     setIntegerParam(P_NumAverage, 25);
 
@@ -866,6 +866,10 @@ asynStatus drvBS_EM::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     }
   else if (function == P_Fdbk_CutOutHyst)
     {
+      ///FIXME XXX DEBUGGING REMOVETHIS
+      printf("Changing Hysteresis, and thus DAC mode.\n");
+      fflush(stdout);
+      setIntegerParam(P_Fdbk_DACMode, 1);
       reg_lookup = 17;
     }
   else if (function == P_Fdbk_I2VScale)
@@ -1019,6 +1023,9 @@ asynStatus drvBS_EM::computeScaleFactor()
     scaleFactor_ = ranges_[range]*1e-12 * FREQUENCY / (integrationTime * 1e6)
                   / MAX_COUNTS / (double)valuesPerRead;
     acqFactor_ = ranges_[range]*1e-12*FREQUENCY/(integrationTime*1e6)/(double) valuesPerRead;
+
+    max_current_ = ranges_[range]*1e-12/integrationTime*1e9; //Current in nA
+    setDoubleParam(P_MaxCurrent, max_current_);
     this->calc_calibration();
     ///
     if (1)

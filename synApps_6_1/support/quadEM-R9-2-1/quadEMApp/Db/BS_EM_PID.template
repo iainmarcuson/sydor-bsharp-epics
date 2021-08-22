@@ -464,7 +464,7 @@ record(ao, "$(P)$(R)PID_Cut_Hyst")
 	field(OUT, "@asyn($(PORT) 0)PID_CUTHY")
 	field(DRVL, "0.0")
 	field(DRVH, "1000000000.0")
-	field(VAL, "0")
+	field(VAL, "10")
 	field(PINI, "YES")
 	field(PREC, "3")
 }
@@ -589,4 +589,15 @@ record(ao, "$(P)$(R)IntegrationTime")
 {
 	field(VAL, "0.04")
 	field(PINI, "YES")
+}
+
+# Maximum Current Computation
+
+record(ai, "$(P)$(R)MaxCurrent_RBV")
+{
+	field(DESC, "Maximum current")
+	field(DTYP, "asynFloat64")
+	field(INP, "@asyn($(PORT) 0)I_MAX")
+	field(SCAN, "I/O Intr")
+	field(PREC, "3")
 }

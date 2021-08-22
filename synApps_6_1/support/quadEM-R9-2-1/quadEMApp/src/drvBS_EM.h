@@ -49,6 +49,7 @@
 #define P_PIDPosTrackRadString    "PID_TRACK_RAD"               /* asynFloat64 */
 
 #define P_CalNameString   "CAL_NAME" /* asynOctet */
+#define P_MaxCurrentString "I_MAX" /* asynFloat64 */
 
 typedef struct {
     int moduleID;
@@ -138,6 +139,7 @@ protected:
   int P_Fdbk_PosTrackRad;
 
   int P_CalName;
+  int P_MaxCurrent;
     /* These are the methods we implement from quadEM */
     virtual asynStatus setAcquire(epicsInt32 value);
     virtual asynStatus setPingPong(epicsInt32 value);
@@ -172,6 +174,7 @@ private:
 				   conversion from acquisition parameters */
     double adcFactor_;		/* Scaling factor from ADC parameters */
     double adcOffset_;		/* Offset from ADC parameters */
+  double max_current_;		// XXX Not quite max current due to offset
 
     Bs_Reg_T pidRegData_[23];	/* Holds parameters for the PID registers */
     Calibration_Data cal_values_[MAX_RANGES]; /* One calibration per range */
