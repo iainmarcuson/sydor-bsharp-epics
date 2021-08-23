@@ -600,4 +600,18 @@ record(ai, "$(P)$(R)MaxCurrent_RBV")
 	field(INP, "@asyn($(PORT) 0)I_MAX")
 	field(SCAN, "I/O Intr")
 	field(PREC, "3")
+	field(FLNK, "$(P)$(R)DF_MaxI.PROC")
+}
+
+record(dfanout, "$(P)$(R)DF_MaxI")
+{
+	field(DESC, "Max current dfanout")
+	field(DOL, "$(P)$(R)MaxCurrent_RBV")
+	field(OMSL, "closed loop")
+	field(OUTA, "$(P)$(R)Current1:MeanValue_RBV.HOPR")
+}
+
+record(ai, "$(P)$(R)Current1:MeanValue_RBV")
+{
+	field(LOPR, "0.0")
 }
