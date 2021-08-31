@@ -57,6 +57,17 @@ typedef enum {
 static const char *driverName="drvBS_EM";
 static void readThread(void *drvPvt);
 
+typedef enum {
+		     kRead_Header,
+		     kRead_BB_Length,
+		     kRead_BB_Payload,
+		     kRead_Cmd_Payload,
+		     kRead_Error, // Invalid data
+		     kRead_Timeout, // For timeout on reading new command, but not part of a command
+		     kRead_Cmd_Payload_Done,
+		     kRead_BB_Payload_Done
+} Command_Read_t;
+
 
 /** Constructor for the drvNSLS_EM class.
   * Calls the constructor for the drvQuadEM base class.
@@ -481,7 +492,11 @@ asynStatus drvBS_EM::writeReadMeter()
   // but commands that take arguments fail on the first write read, must do it again.
   ///XXX
   ///pasynCommonSyncIO->connectDevice(pasynUserTCPCommandConnect_);
-  
+
+  // Zero out the return string
+  bzero(inString_, sizeof(inString_));
+
+  /*
   status = pasynOctetSyncIO->writeRead(pasynUserTCPCommand_, outString_, strlen(outString_), 
                                           inString_, sizeof(inString_), NSLS_EM_TIMEOUT, 
                                           &nwrite, &nread, &eomReason);
@@ -490,12 +505,19 @@ asynStatus drvBS_EM::writeReadMeter()
           "%s:%s: error calling writeRead, outString=%s status=%d, nread=%d, eomReason=%d, inString=%s\n",
           driverName, functionName, outString_, status, (int)nread, eomReason, inString_);
   }
-  else if (strstr(inString_, ">:OK") == 0) {
+  
+  if (strstr(inString_, ">:OK") == 0) {
       asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
           "%s:%s: error, outString=%s expected >:OK, received %s\n",
           driverName, functionName, outString_, inString_);
       status = asynError;
   }
+  */
+
+  status = pasynOctetSyncIO->write(pasynUserTCPCommand_, outString_, strlen(outString_), NSLS_EM_TIMEOUT, &nwrite);
+
+  readResponse();
+  
   ///XXX
   ///pasynCommonSyncIO->disconnectDevice(pasynUserTCPCommandConnect_);
   
@@ -505,6 +527,174 @@ asynStatus drvBS_EM::writeReadMeter()
   return status;
 }
 
+/** Function to parse all input on command port
+ */
+
+asynStatus drvBS_EM::readResponse()
+{
+  asynStatus status;
+  double total_time;
+  const double BYTE_TIMEOUT = 0.01;
+  const double TOTAL_TIMEOUT = 0.2;
+  int byte_ctr;
+  size_t nread;
+  int eomReason;
+  Command_Read_t read_state;
+  read_state = kRead_Header;
+  unsigned short bb_len;
+  
+  while (1)			// Loop until we timeout
+    {
+      ///Maybe move this outside the loop
+      total_time = 0;
+      bzero(inString_, sizeof(inString_));
+      byte_ctr = 0;
+
+      if (read_state == kRead_Header)
+	{
+	  // Read in the two byte header to start
+	  status = pasynOctetSyncIO->read(pasynUserTCPCommand_, inString_, 2, TOTAL_TIMEOUT,
+					  &nread, &eomReason);
+	  if (status != asynSuccess) // Some variety of error
+	    {
+	      if ((status == asynTimeout) && (nread == 0)) // No new commands
+		{
+		  read_state = kRead_Timeout;
+		}
+	      else		// Either a read error, or only part of a command
+		{
+		  read_state = kRead_Error; // We will want to flush the buffer
+		}
+	    }
+	  else			// Successfully read
+	    {
+	      byte_ctr += 2;			// Read in two bytes
+	      if (strcmp(inString_, "bb") == 0) // Reading a bb command
+		{
+		  read_state = kRead_BB_Length;
+		  ///
+		  printf("Read BB header\n");
+		  fflush(stdout);
+		}
+	      else if ((strcmp(inString_, "wr") == 0) ||
+		       (strcmp(inString_, "bc") == 0) ||
+		       (strcmp(inString_, "bs") == 0)
+		       )
+		{
+		  read_state = kRead_Cmd_Payload;
+		  ///
+		  printf("Read Cmd header\n");
+		  fflush(stdout);
+		}
+	      else		// Not a recognized or supported command (e.g rr)
+		{
+		  read_state = kRead_Error;
+		}
+	    }
+	}
+      
+      if (read_state == kRead_BB_Length)
+	{
+	  status = pasynOctetSyncIO->read(pasynUserTCPCommand_, inString_+byte_ctr, 2, BYTE_TIMEOUT,
+					  &nread, &eomReason);
+	  if (status != asynSuccess)
+	    {
+	      read_state = kRead_Error;
+	    }
+	  else
+	    {
+	      bb_len = ntohs(*((unsigned short *)&inString_[byte_ctr]));
+	      read_state = kRead_BB_Payload;
+	      byte_ctr += 2;
+	      ///DEBUGGING REMOVETHIS
+	      printf("BB Length %hu\n", bb_len);
+	      fflush(stdout);
+	    }
+	}
+
+      if (read_state == kRead_Cmd_Payload)
+	{
+	  while(1)
+	    {
+	      status = pasynOctetSyncIO->read(pasynUserTCPCommand_, inString_+byte_ctr, 1, BYTE_TIMEOUT,
+					      &nread, &eomReason);
+	      if (nread != 1)	// Didn't read any bytes, so error
+		{
+		  read_state = kRead_Error;
+		  break;
+		}
+
+
+	      if (inString_[byte_ctr] == '\n') // Found end of response
+		{
+		  read_state = kRead_Cmd_Payload_Done;
+		  /// TODO Do something with the payload maybe
+		  printf("Receive: %s\n", inString_+2);
+		  fflush(stdout);
+		  break;
+		}
+
+	      byte_ctr++;		       // Increment the byte count
+	      
+		  if (byte_ctr == (sizeof(inString_)-1)) // Maximum read with no response
+		{
+		  read_state = kRead_Error;
+		  break;
+		}
+	    }
+	}
+
+      if (read_state == kRead_BB_Payload)
+	{
+	  int bb_idx;
+	  unsigned int bb_payload[2]; // Pairs of <reg num>,<reg val>
+
+	  for (bb_idx = 0; bb_idx<(bb_len/8); bb_idx++)
+	    {
+	      status = pasynOctetSyncIO->read(pasynUserTCPCommand_, (char *)bb_payload, 8, BYTE_TIMEOUT,
+					      &nread, &eomReason);
+	      
+	      if (status != asynSuccess)
+		{
+		  read_state = kRead_Error;
+		  break;
+		}
+
+	      byte_ctr += 8;
+
+	      bb_payload[0] = ntohl(bb_payload[0]);
+	      bb_payload[1] = ntohl(bb_payload[1]);
+
+	      ///TODO Put in proper handling.  For now, just print them out
+	      printf("BB: Reg %3u\tVal %u\n", bb_payload[0], bb_payload[1]);
+	      fflush(stdout);
+	    }
+	  
+	  if (read_state != kRead_Error)
+	    {
+	      read_state = kRead_BB_Payload_Done;
+	    }
+	}    
+      
+      if (read_state == kRead_Timeout)
+	{
+	  return asynSuccess;	// All commands processed, so report success
+	}
+
+      if ((read_state == kRead_Cmd_Payload_Done) ||
+	  (read_state == kRead_BB_Payload_Done)) // Handled a commands payload successfully
+	{
+	  read_state = kRead_Header;
+	}
+
+      if (read_state == kRead_Error) // We had a problem reading
+	{
+	  pasynOctetSyncIO->flush(pasynUserTCPCommand_); // Clear the buffer
+	  return asynError;
+	}
+    }
+}
+	
 /** Read thread to read the data from the electrometer when it is in continuous acquire mode.
   * Reads the data, computes the sums and positions, and does callbacks.
   */
@@ -588,6 +778,10 @@ void drvBS_EM::readThread(void)
         pasynManager->lockPort(pasynUser);
 //Read header
 	status = pasynOctet->read(octetPvt, pasynUser, ASCIIData, 4, &nRead, &eomReason);
+	///DEBUGGING REMOVETHIS
+	//printf("Data: status %i read %i header %02hhx %02hhx %02hhx %02hhx\n", status, (int) nRead, ASCIIData[0], ASCIIData[1], ASCIIData[2], ASCIIData[3]);
+	//fflush(stdout);
+	
 	nRequested = ntohs(*(unsigned short *)(&ASCIIData[2]));
 	num_words = (nRequested-1)/4; // Subtract 1-byte checksum
 	num_data = (nRequested-13)/4; //12-byte header plus 1-byte checksum

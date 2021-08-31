@@ -192,5 +192,6 @@ private:
     double raw_to_current(signed int raw_val);
     void calc_calibration();
     void parse_cal_file(FILE *cal_file);
+  asynStatus readResponse();
 };
 
