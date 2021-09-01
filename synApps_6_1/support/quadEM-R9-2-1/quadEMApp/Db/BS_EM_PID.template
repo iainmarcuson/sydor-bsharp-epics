@@ -18,6 +18,7 @@ record(ao, "$(P)$(R)PIDX_SP")
 	field(VAL, "0.0")
 	field(PINI, "YES")
 	field(PREC, "3")
+	info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDX_SP_RBV")
@@ -39,6 +40,7 @@ record(ao, "$(P)$(R)PIDX_KP")
 	     field(VAL, "0.5")
 	     field(PINI, "YES")
 	     field(PREC, "3")
+	     info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDX_KP_RBV")
@@ -60,6 +62,7 @@ record(ao, "$(P)$(R)PIDX_KI")
 	     field(VAL, "0")
 	     field(PINI, "YES")
 	     field(PREC, "3")
+	     info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDX_KI_RBV")
@@ -81,6 +84,7 @@ record(ao, "$(P)$(R)PIDX_KD")
 	     field(VAL, "0")
 	     field(PINI, "YES")
 	     field(PREC, "3")
+	     info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDX_KD_RBV")
@@ -102,6 +106,7 @@ record(ao, "$(P)$(R)PIDX_MV")
 	field(VAL, "5.0")
 	field(PINI, "YES")
 	field(PREC, "3")
+	info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDX_MV_RBV")
@@ -123,6 +128,7 @@ record(ao, "$(P)$(R)PIDX_VOff")
 	field(VAL, "0")
 	field(PINI, "YES")
 	field(PREC, "3")
+	info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDX_VOff_RBV")
@@ -147,6 +153,7 @@ record(ao, "$(P)$(R)PIDY_SP")
 	field(VAL, "0")
 	field(PINI, "YES")
 	field(PREC, "3")
+	info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDY_SP_RBV")
@@ -168,6 +175,7 @@ record(ao, "$(P)$(R)PIDY_KP")
 	     field(VAL, "0.5")
 	     field(PINI, "YES")
 	     field(PREC, "3")
+	     info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDY_KP_RBV")
@@ -189,6 +197,7 @@ record(ao, "$(P)$(R)PIDY_KI")
 	     field(VAL, "0")
 	     field(PINI, "YES")
 	     field(PREC, "3")
+	     info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDY_KI_RBV")
@@ -208,6 +217,7 @@ record(ao, "$(P)$(R)PIDY_KD")
 	     field(VAL, "0")
 	     field(PINI, "YES")
 	     field(PREC, "3")
+	     info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDY_KD_RBV")
@@ -227,6 +237,7 @@ record(ao, "$(P)$(R)PIDY_MV")
 	field(VAL, "5")
 	field(PINI, "YES")
 	field(PREC, "3")
+	info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDY_MV_RBV")
@@ -248,6 +259,7 @@ record(ao, "$(P)$(R)PIDY_VOff")
 	field(VAL, "0")
 	field(PINI, "YES")
 	field(PREC, "3")
+	info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PIDY_VOff_RBV")
@@ -273,6 +285,7 @@ record(mbbo, "$(P)$(R)PID_On")
 	field(ONVL, "4")
 	field(VAL, "0")
 	field(PINI, "YES")
+	info(asyn:READBACK,"1")
 }
 
 record(mbbi, "$(P)$(R)PID_On_RBV")
@@ -297,6 +310,7 @@ record(ao, "$(P)$(R)PID_Cut")
 	field(VAL, "300")
 	field(PINI, "YES")
 	field(PREC, "3")
+	info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PID_Cut_RBV")
@@ -319,6 +333,7 @@ record(mbbo, "$(P)$(R)PID_ReEn")
 	field(ONVL, "1")
 	field(VAL, "0")
 	field(PINI, "YES")
+	info(asyn:READBACK,"1")
 }
 
 record(mbbi, "$(P)$(R)PID_ReEn_RBV")
@@ -348,6 +363,7 @@ record(mbbo, "$(P)$(R)PID_DACM")
 	field(THVL, "3")
 	field(VAL, "0")
 	field(PINI, "YES")
+	info(asyn:READBACK,"1")
 }
 
 record(mbbi, "$(P)$(R)PID_DACM_RBV")
@@ -380,6 +396,7 @@ record(mbbo, "$(P)$(R)PID_CutEn")
 	field(ONVL, "1")
 	field(VAL, "0")
 	field(PINI, "YES")
+	info(asyn:READBACK,"1")
 }
 
 record(mbbi, "$(P)$(R)PID_CutEn_RBV")
@@ -409,6 +426,7 @@ record(mbbo, "$(P)$(R)PID_ExtTrig")
 	field(ONVL, "1")
 	field(VAL, "0")
 	field(PINI, "YES")
+	info(asyn:READBACK,"1")
 }
 
 record(mbbi, "$(P)$(R)PID_ExtTrig_RBV")
@@ -438,6 +456,7 @@ record(mbbo, "$(P)$(R)PID_Inhibit")
 	field(ONVL, "1")
 	field(VAL, "0")
 	field(PINI, "YES")
+	info(asyn:READBACK,"1")
 }
 
 record(mbbi, "$(P)$(R)PID_Inhibit_RBV")
@@ -467,6 +486,7 @@ record(ao, "$(P)$(R)PID_Cut_Hyst")
 	field(VAL, "10")
 	field(PINI, "YES")
 	field(PREC, "3")
+	info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PID_Cut_Hyst_RBV")
@@ -492,6 +512,7 @@ record(ao, "$(P)$(R)PID_IToV")
 	field(VAL, "0")
 	field(PINI, "YES")
 	field(PREC, "3")
+	info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PID_IToV_RBV")
@@ -518,6 +539,7 @@ record(mbbo, "$(P)$(R)PID_PosTrack")
 	field(TWVL, "16")
 	field(VAL, "0")
 	field(PINI, "YES")
+	info(asyn:READBACK,"1")
 }
 
 record(mbbi, "$(P)$(R)PID_PosTrack_RBV")
@@ -548,6 +570,7 @@ record(ao, "$(P)$(R)PID_Pos_Rad")
 	field(VAL, "0")
 	field(PINI, "YES")
 	field(PREC, "3")
+	info(asyn:READBACK,"1")
 }
 
 record(ai, "$(P)$(R)PID_Pos_Rad_RBV")
@@ -614,4 +637,24 @@ record(dfanout, "$(P)$(R)DF_MaxI")
 record(ai, "$(P)$(R)Current1:MeanValue_RBV")
 {
 	field(LOPR, "0.0")
+}
+
+# Record to continually refresh
+
+record(longout, "$(P)$(R)PID_Refresh")
+{
+	field(DESC, "PID X Refresh")
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT) 0)PID_REFRESH")
+	field(VAL, "0")
+	field(PINI, "YES")
+	info(asyn:READBACK,"1")
+	field(SCAN, "1 second")
+}
+
+record(longin, "$(P)$(R)PID_Refresh_RBV")
+{
+	field(DESC, "PID X Refresh")
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT) 0)PID_REFRESH")
 }

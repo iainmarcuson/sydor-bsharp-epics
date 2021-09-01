@@ -249,6 +249,9 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 
     createParam(P_CalNameString, asynParamOctet, &P_CalName);
     createParam(P_MaxCurrentString, asynParamFloat64, &P_MaxCurrent);
+
+    createParam(P_PIDRefreshString, asynParamInt32, &P_PIDRefresh);
+    
     //Set the PID register parameters
     /*pidRegData_ = {
       {param_reg, 200, 0xFFFFFFFF, reg_int, 0.0, 1.0, 0, 10000}, //Setpoint
@@ -514,9 +517,12 @@ asynStatus drvBS_EM::writeReadMeter()
   }
   */
 
-  status = pasynOctetSyncIO->write(pasynUserTCPCommand_, outString_, strlen(outString_), NSLS_EM_TIMEOUT, &nwrite);
+  if (strlen(outString_) > 0)	// Non-empty string, so actually do the write
+    {
+      status = pasynOctetSyncIO->write(pasynUserTCPCommand_, outString_, strlen(outString_), NSLS_EM_TIMEOUT, &nwrite);
+    }
 
-  readResponse();
+  readResponse();		// Always read the response, since it is sent unsolicited
   
   ///XXX
   ///pasynCommonSyncIO->disconnectDevice(pasynUserTCPCommandConnect_);
@@ -668,6 +674,8 @@ asynStatus drvBS_EM::readResponse()
 	      ///TODO Put in proper handling.  For now, just print them out
 	      printf("BB: Reg %3u\tVal %u\n", bb_payload[0], bb_payload[1]);
 	      fflush(stdout);
+
+	      pvCallback(bb_payload);
 	    }
 	  
 	  if (read_state != kRead_Error)
@@ -969,7 +977,12 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
       status = writeReadMeter();
     }
 
-  if (function < P_FdbkEnable)	// Assume function not a BSharp one
+  if (function == P_PIDRefresh)	    // Doing a refresh
+    {
+      bzero(outString_, sizeof(outString_));
+      status = writeReadMeter();
+    }
+  else if (function < P_FdbkEnable)	// Assume function not a BSharp one
     {
       printf("writeINt falling through.\n");
       if (function == P_Acquire)
@@ -1203,7 +1216,171 @@ asynStatus drvBS_EM::setPingPong(epicsInt32 value)
     return setMode();
 }
 
-asynStatus drvBS_EM::computeScaleFactor()
+/** Do the register callback
+ */
+
+void drvBS_EM::pvCallback(unsigned int *reg_pair)
+{
+  unsigned int reg_num = reg_pair[0];
+  unsigned int reg_val = reg_pair[1];
+  int val_int;
+  double val_double;
+  double scale_factor = 10000.0; // Some modularity
+  
+  // One big switch should handle things
+  switch(reg_num) {
+  case 200:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_X_SP, val_double);
+    break;
+  case 201:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_X_KP, val_double);
+    break;
+  case 202:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_X_KI, val_double);
+    break;
+  case 203:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_X_KD, val_double);
+    break;
+  case 204:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_X_MaxV, val_double);
+    break;
+  case 205:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_X_VOff, val_double);
+    break;
+  case 210:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_Y_SP, val_double);
+    break;
+  case 211:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_Y_KP, val_double);
+    break;
+  case 212:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_Y_KI, val_double);
+    break;
+  case 213:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_Y_KD, val_double);
+    break;
+  case 214:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_Y_MaxV, val_double);
+    break;
+  case 215:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_Y_VOff, val_double);
+    break;
+  case 221:
+    val_double = reg_val/1000.0;
+    setDoubleParam(P_Fdbk_CutOutThresh, val_double);
+    break;
+  case 222:
+    val_double = reg_val/1000.0;
+    setDoubleParam(P_Fdbk_CutOutHyst, val_double);
+    break;
+  case 230: //Calibration is computed manually by IOC, so just swallow them
+  case 231:
+  case 232:
+  case 233:
+  case 234:
+  case 235:
+  case 236:
+  case 237:
+    break;
+  case 239:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_I2VScale, val_double);
+    break;
+  case 241:
+    val_double = reg_val/scale_factor;
+    setDoubleParam(P_Fdbk_PosTrackRad, val_double);
+    break;
+  case 240:			// DAC mode is a multi-function register
+    if (reg_val & 0x8)
+      {
+	setIntegerParam(P_Fdbk_ExtTrig, 1);
+      }
+    else
+      {
+	setIntegerParam(P_Fdbk_ExtTrig, 0);
+      }
+    if (reg_val & 0x10)
+      {
+	setIntegerParam(P_Fdbk_PIDInhibit, 1);
+      }
+    else
+      {
+	setIntegerParam(P_Fdbk_PIDInhibit, 0);
+      }
+    
+    if ((reg_val & 0x7) < 4)
+      {
+	setIntegerParam(P_Fdbk_DACMode, reg_val & 0x7); // Set to corresponding mode
+      }
+    else			// A "Reserved" value
+      {
+	printf("Warning: DAC Mode set to a reserved value.\n");
+	fflush(stdout);
+	setIntegerParam(P_Fdbk_DACMode, 0); // Disable DACs as a precaution.
+      }
+    break;
+  case 220:			// PID Control
+    if (reg_val & 0x4)
+      {
+	setIntegerParam(P_FdbkEnable, 1);
+      }
+    else
+      {
+	setIntegerParam(P_FdbkEnable, 0);
+      }
+
+    if (reg_val & 0x2)
+      {
+	setIntegerParam(P_Fdbk_CutOutEn, 1);
+      }
+    else
+      {
+	setIntegerParam(P_Fdbk_CutOutEn, 0);
+      }
+
+    if (reg_val & 0x1)
+      {
+	setIntegerParam(P_Fdbk_Reenable, 1);
+      }
+    else
+      {
+	setIntegerParam(P_Fdbk_Reenable, 0);
+      }
+
+    val_int = (reg_val >> 3) & 0x3;
+    if (val_int != 3)		// A valid value
+      {
+	setIntegerParam(P_Fdbk_PosTrack, val_int);
+      }
+    else			// A reserved value
+      {
+	setIntegerParam(P_Fdbk_PosTrack, 0);
+	printf("Warning: Position tracking set to a reserved value.\n");
+	fflush(stdout);
+      }
+    break;
+  default:
+    printf("Warning: Readback parameter not recognized.\n");
+    fflush(stdout);
+  }
+
+  return;
+}
+
+
+    asynStatus drvBS_EM::computeScaleFactor()
 {
     int range;
     int valuesPerRead;

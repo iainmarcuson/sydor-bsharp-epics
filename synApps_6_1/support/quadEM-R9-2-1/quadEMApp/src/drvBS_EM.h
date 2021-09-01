@@ -51,6 +51,8 @@
 #define P_CalNameString   "CAL_NAME" /* asynOctet */
 #define P_MaxCurrentString "I_MAX" /* asynFloat64 */
 
+#define P_PIDRefreshString "PID_REFRESH"
+
 typedef struct {
     int moduleID;
     char moduleIP[MAX_IPNAME_LEN];
@@ -140,6 +142,9 @@ protected:
 
   int P_CalName;
   int P_MaxCurrent;
+
+  int P_PIDRefresh;
+  
     /* These are the methods we implement from quadEM */
     virtual asynStatus setAcquire(epicsInt32 value);
     virtual asynStatus setPingPong(epicsInt32 value);
@@ -193,5 +198,6 @@ private:
     void calc_calibration();
     void parse_cal_file(FILE *cal_file);
   asynStatus readResponse();
+  void pvCallback(unsigned int *reg_pair);
 };
 
