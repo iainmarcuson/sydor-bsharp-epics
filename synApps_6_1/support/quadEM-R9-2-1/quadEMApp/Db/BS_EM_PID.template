@@ -649,7 +649,7 @@ record(longout, "$(P)$(R)PID_Refresh")
 	field(VAL, "0")
 	field(PINI, "YES")
 	info(asyn:READBACK,"1")
-	field(SCAN, "1 second")
+	field(SCAN, "2 second")
 }
 
 record(longin, "$(P)$(R)PID_Refresh_RBV")

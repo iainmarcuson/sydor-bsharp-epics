@@ -517,10 +517,12 @@ asynStatus drvBS_EM::writeReadMeter()
   }
   */
 
-  if (strlen(outString_) > 0)	// Non-empty string, so actually do the write
+  if (strlen(outString_) == 0)	// Blank string, so touch registers
     {
-      status = pasynOctetSyncIO->write(pasynUserTCPCommand_, outString_, strlen(outString_), NSLS_EM_TIMEOUT, &nwrite);
+      sprintf(outString_, "tr 200 241\r\n");
     }
+
+  status = pasynOctetSyncIO->write(pasynUserTCPCommand_, outString_, strlen(outString_), NSLS_EM_TIMEOUT, &nwrite); //Now write the command
 
   readResponse();		// Always read the response, since it is sent unsolicited
   
@@ -887,7 +889,20 @@ void drvBS_EM::readThread(void)
 	    ///data_int[i] = total_num++;
 	  }
 
-	for (j=0; j<num_data/4; j++)
+	//Correct num_data to use the value from the header
+	num_data = data_int[2];
+	///
+	printf("Reading %i data points.\n", num_data);
+	fflush(stdout);
+	///
+	/*for (j=1; j<6; j++)
+	  {
+	    printf("j: %i\tVal: %i\n", j, data_int[j]);
+	  }
+	fflush(stdout);
+	*/
+	
+	for (j=0; j<num_data; j++)
 	  {
 	    if (((phase == 0) && (pingPong == Phase0)) ||
 		((phase == 1) && (pingPong == Phase1)) ||
@@ -1362,7 +1377,11 @@ void drvBS_EM::pvCallback(unsigned int *reg_pair)
     val_int = (reg_val >> 3) & 0x3;
     if (val_int != 3)		// A valid value
       {
-	setIntegerParam(P_Fdbk_PosTrack, val_int);
+	///DEBUGGING REMOVETHIS
+	printf("Setting position tracking to %i\n", val_int);
+	fflush(stdout);
+	setIntegerParam(P_Fdbk_PosTrack, reg_val & 0x18);
+	//setIntegerParam(P_Fdbk_PosTrack, val_int);
       }
     else			// A reserved value
       {
