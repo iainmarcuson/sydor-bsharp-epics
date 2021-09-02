@@ -37,8 +37,7 @@
 #define COMMAND_PORT    4747
 #define DATA_PORT       5757
 #define BROADCAST_PORT 37747
-///XXX TODO Change according to hardware
-///#define MIN_INTEGRATION_TIME 400e-6
+//XXX TODO Change according to hardware
 #define MIN_INTEGRATION_TIME 810e-6
 #define MAX_INTEGRATION_TIME 1.0
 #define FREQUENCY 1e6
@@ -283,7 +282,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
         return;
     }
 
-    ///Parameters to set
+    //Parameters to set
     setIntegerParam(P_Range, 0);
     setIntegerParam(P_ValuesPerRead, 5);
     setDoubleParam(P_IntegrationTime, 810e-6);
@@ -418,29 +417,6 @@ void drvBS_EM::process_reg(int reg_lookup, double value)
       char *delim_find;
       char response_string[256];
       
-      //First, read in the value
-      ///
-      /*
-      epicsSnprintf(outString_, sizeof(outString_), "rr %d?\r\n", curr_item.reg_num);
-      writeReadMeter();
-      sscanf(inString_, "%[^\n]", response_string);
-      printf("Multi-bit response string reg %d, length %i:\n%s\n", curr_item.reg_num, (int) strlen(response_string), response_string);
-      fflush(stdout);
-      
-      delim_find = strstr(inString_, ">");
-      if (delim_find == NULL)	// TODO Handle this better
-	{
-	  epicsSnprintf(outString_, sizeof(outString_), "rr 1?\r\n"); // Put in a harmless command
-	  printf("Failed to get response from hardware.\n");
-	  fflush(stdout);
-	  return;
-	}
-      
-      sscanf(&(delim_find[1]), "%i", &reg_start_value); // Start after the delimiter
-      reg_start_value = reg_start_value & ~curr_item.bit_mask; // Mask out the bits to manipulate
-      reg_start_value = reg_start_value | (unsigned int) value; // Or in the new value from the Db file
-      */
-      
       epicsSnprintf(outString_, sizeof(outString_), "wr %d %i\r\n", curr_item.reg_num, (unsigned int) value);
       return;
     }
@@ -483,40 +459,15 @@ asynStatus drvBS_EM::writeReadMeter()
   size_t nread;
   size_t nwrite;
   asynStatus status=asynSuccess;
-//  char tempString[16];
   int eomReason;
   static const char *functionName="writeReadMeter";
 
-  ///XXX Debugging
-  printf("Starting writeReadMeter.\n");
-  fflush(stdout);
-
-  // The meter has a strange behavior.  Commands that take no arguments succeed on the first write/read
-  // but commands that take arguments fail on the first write read, must do it again.
-  ///XXX
-  ///pasynCommonSyncIO->connectDevice(pasynUserTCPCommandConnect_);
-
+  
+  
   // Zero out the return string
   bzero(inString_, sizeof(inString_));
 
-  /*
-  status = pasynOctetSyncIO->writeRead(pasynUserTCPCommand_, outString_, strlen(outString_), 
-                                          inString_, sizeof(inString_), NSLS_EM_TIMEOUT, 
-                                          &nwrite, &nread, &eomReason);
-  if (status) {
-      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
-          "%s:%s: error calling writeRead, outString=%s status=%d, nread=%d, eomReason=%d, inString=%s\n",
-          driverName, functionName, outString_, status, (int)nread, eomReason, inString_);
-  }
   
-  if (strstr(inString_, ">:OK") == 0) {
-      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
-          "%s:%s: error, outString=%s expected >:OK, received %s\n",
-          driverName, functionName, outString_, inString_);
-      status = asynError;
-  }
-  */
-
   if (strlen(outString_) == 0)	// Blank string, so touch registers
     {
       sprintf(outString_, "tr 200 241\r\n");
@@ -526,12 +477,6 @@ asynStatus drvBS_EM::writeReadMeter()
 
   readResponse();		// Always read the response, since it is sent unsolicited
   
-  ///XXX
-  ///pasynCommonSyncIO->disconnectDevice(pasynUserTCPCommandConnect_);
-  
-  printf("Finishhhhed             writeReadMer.\n");;;;;;;
-  fflush(stdout);
-
   return status;
 }
 
@@ -553,7 +498,7 @@ asynStatus drvBS_EM::readResponse()
   
   while (1)			// Loop until we timeout
     {
-      ///Maybe move this outside the loop
+      //TODO Maybe move this outside the loop
       total_time = 0;
       bzero(inString_, sizeof(inString_));
       byte_ctr = 0;
@@ -580,9 +525,6 @@ asynStatus drvBS_EM::readResponse()
 	      if (strcmp(inString_, "bb") == 0) // Reading a bb command
 		{
 		  read_state = kRead_BB_Length;
-		  ///
-		  printf("Read BB header\n");
-		  fflush(stdout);
 		}
 	      else if ((strcmp(inString_, "wr") == 0) ||
 		       (strcmp(inString_, "bc") == 0) ||
@@ -590,9 +532,6 @@ asynStatus drvBS_EM::readResponse()
 		       )
 		{
 		  read_state = kRead_Cmd_Payload;
-		  ///
-		  printf("Read Cmd header\n");
-		  fflush(stdout);
 		}
 	      else		// Not a recognized or supported command (e.g rr)
 		{
@@ -614,9 +553,6 @@ asynStatus drvBS_EM::readResponse()
 	      bb_len = ntohs(*((unsigned short *)&inString_[byte_ctr]));
 	      read_state = kRead_BB_Payload;
 	      byte_ctr += 2;
-	      ///DEBUGGING REMOVETHIS
-	      printf("BB Length %hu\n", bb_len);
-	      fflush(stdout);
 	    }
 	}
 
@@ -637,8 +573,6 @@ asynStatus drvBS_EM::readResponse()
 		{
 		  read_state = kRead_Cmd_Payload_Done;
 		  /// TODO Do something with the payload maybe
-		  printf("Receive: %s\n", inString_+2);
-		  fflush(stdout);
 		  break;
 		}
 
@@ -672,10 +606,6 @@ asynStatus drvBS_EM::readResponse()
 
 	      bb_payload[0] = ntohl(bb_payload[0]);
 	      bb_payload[1] = ntohl(bb_payload[1]);
-
-	      ///TODO Put in proper handling.  For now, just print them out
-	      printf("BB: Reg %3u\tVal %u\n", bb_payload[0], bb_payload[1]);
-	      fflush(stdout);
 
 	      pvCallback(bb_payload);
 	    }
@@ -733,7 +663,7 @@ void drvBS_EM::readThread(void)
     int total_num = 0;
     ///Benchmarking
 #define RATE_BENCHMARK
-    ///#undef RATE_BENCHMARK
+#undef RATE_BENCHMARK
 #ifdef RATE_BENCHMARK
     const char *rate_log_filename = "ratelog.txt";
     FILE *rate_log_file;
@@ -788,10 +718,7 @@ void drvBS_EM::readThread(void)
         pasynManager->lockPort(pasynUser);
 //Read header
 	status = pasynOctet->read(octetPvt, pasynUser, ASCIIData, 4, &nRead, &eomReason);
-	///DEBUGGING REMOVETHIS
-	//printf("Data: status %i read %i header %02hhx %02hhx %02hhx %02hhx\n", status, (int) nRead, ASCIIData[0], ASCIIData[1], ASCIIData[2], ASCIIData[3]);
-	//fflush(stdout);
-	
+		
 	nRequested = ntohs(*(unsigned short *)(&ASCIIData[2]));
 	num_words = (nRequested-1)/4; // Subtract 1-byte checksum
 	num_data = (nRequested-13)/4; //12-byte header plus 1-byte checksum
@@ -800,18 +727,13 @@ void drvBS_EM::readThread(void)
 #endif
 
 	total_read = 0;
-	///printf("readThread: NumRead=%d, first byte=%hhx, NumBytes=%d.\n",
-	///       nRead, ASCIIData[0], nRequested);
-	fflush(stdout);
+	
 	//Check for valid data
 	if ((ASCIIData[0] != 'B') || (ASCIIData[1] != 1))
 	  {
 #ifdef RATE_BENCHMARK
             packet_err_count++;
-	    if ((packet_err_count % 30) == 0)
-	      {
-		///printf("%hhu, %hhu, %hhu, %hhu\n", ASCIIData[0], ASCIIData[1], ASCIIData[2], ASCIIData[3]);
-	      }
+	    
 #endif RATE_BENCHMARK
 	    pasynOctet->flush(octetPvt, pasynUser);
 	    pasynManager->unlockPort(pasynUser);
@@ -857,10 +779,6 @@ void drvBS_EM::readThread(void)
 	  }
 #endif
 
-	
-        ///printf("readThread: Read %i data bytes.\n", nRead);
-	fflush(stdout);
-	///pasynOctet->flush(octetPvt, pasynUser);
         pasynManager->unlockPort(pasynUser);
         lock();
 
@@ -880,27 +798,14 @@ void drvBS_EM::readThread(void)
             continue;
         }
 	}
-	/// Make the data little endian
-	///printf("Making data little endian.\n");
-	///fflush(stdout);
+	
 	for (i=0; i<num_words; i++)
 	  {
 	    data_int[i] = ntohl(data_int[i]);
-	    ///data_int[i] = total_num++;
 	  }
 
 	//Correct num_data to use the value from the header
 	num_data = data_int[2];
-	///
-	printf("Reading %i data points.\n", num_data);
-	fflush(stdout);
-	///
-	/*for (j=1; j<6; j++)
-	  {
-	    printf("j: %i\tVal: %i\n", j, data_int[j]);
-	  }
-	fflush(stdout);
-	*/
 	
 	for (j=0; j<num_data; j++)
 	  {
@@ -911,25 +816,13 @@ void drvBS_EM::readThread(void)
 		//12 bytes offset of payload, so 3 ints
 
 
-		if (PRINT_RAW_DATA)
-		  {
-		    printf("%07d\t", data_int[j*4+i+3]);
-		  }
-
 		data[i] = raw_to_current(data_int[j*4+i+3]);
-		///TODO Add in calibration
+
+		//Apply calibration
 		data[i] = data[i] - (cal_offset_[i]*1e-9);
 		data[i] = data[i]/cal_slope_[i];
 	      }
 	      
-	      if (PRINT_RAW_DATA)
-		{
-		  printf("\n");
-		  fflush(stdout);
-		}
-	      
-	      ///printf("Computing positions.\n");
-	      fflush(stdout);
 	      computePositions(data);
 	    }
 	  }
@@ -1023,8 +916,6 @@ asynStatus drvBS_EM::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
   int channel;
   int reg_lookup;
 
-  ///XXX REMOVETHIS
-  //return drvQuadEM::writeFloat64(pasynUser, value);
   
   getAddress(pasynUser, &channel);
 
@@ -1088,9 +979,7 @@ asynStatus drvBS_EM::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     }
   else if (function == P_Fdbk_CutOutHyst)
     {
-      ///FIXME XXX DEBUGGING REMOVETHIS
-      printf("Changing Hysteresis, and thus DAC mode.\n");
-      fflush(stdout);
+      //FIXME Do I really want to change DAC mode on adjustign hysteresis?
       setIntegerParam(P_Fdbk_DACMode, 1);
       reg_lookup = 17;
     }
@@ -1165,7 +1054,6 @@ asynStatus drvBS_EM::setMode()
     if (pingPong != PhaseBoth) mode |= 0x80;
     // Send the mode command
     sprintf(outString_, "m %d", mode);
-    ///writeReadMeter();
     return asynSuccess;
 }
 
@@ -1177,10 +1065,7 @@ asynStatus drvBS_EM::setIntegrationTime(epicsFloat64 value)
     asynStatus status;
     int time_scale_num;	// Number to send that corresponds to time
 
-    ///
-    printf("setIntegrationTime Raw Value: %f\n", value);
-    fflush(stdout);
-    
+        
     /* Make sure the integration time is valid. If not change it and put back in parameter library */
     if (value < MIN_INTEGRATION_TIME) {
         value = MIN_INTEGRATION_TIME;
@@ -1377,11 +1262,7 @@ void drvBS_EM::pvCallback(unsigned int *reg_pair)
     val_int = (reg_val >> 3) & 0x3;
     if (val_int != 3)		// A valid value
       {
-	///DEBUGGING REMOVETHIS
-	printf("Setting position tracking to %i\n", val_int);
-	fflush(stdout);
 	setIntegerParam(P_Fdbk_PosTrack, reg_val & 0x18);
-	//setIntegerParam(P_Fdbk_PosTrack, val_int);
       }
     else			// A reserved value
       {
@@ -1391,8 +1272,10 @@ void drvBS_EM::pvCallback(unsigned int *reg_pair)
       }
     break;
   default:
-    printf("Warning: Readback parameter not recognized.\n");
-    fflush(stdout);
+    ///TODO How to handle unrecognized readback?
+    //printf("Warning: Readback parameter not recognized.\n");
+    //fflush(stdout);
+    break;
   }
 
   return;
@@ -1417,18 +1300,7 @@ void drvBS_EM::pvCallback(unsigned int *reg_pair)
     max_current_ = ranges_[range]*1e-12/integrationTime*1e9; //Current in nA
     setDoubleParam(P_MaxCurrent, max_current_);
     this->calc_calibration();
-    ///
-    if (1)
-      {
-	int channel_idx;
-	printf("New calibration values:\n");
-	for (channel_idx =0; channel_idx < 4; channel_idx++)
-	  {
-	    printf("Channel %i Slope: %8f Offset: %8f\n", channel_idx, cal_slope_[channel_idx], cal_offset_[channel_idx]);
-	  }
-	fflush(stdout);
-      }
-
+    
     while (1)			// XXX Always do this, but break at end
       {
 	int channel_idx;
@@ -1443,9 +1315,6 @@ void drvBS_EM::pvCallback(unsigned int *reg_pair)
 	break;			// Leave this loop -- one time only
       }
     
-    ///XXX FIXME TODO Set here to allow setIntegrationTime to shift current
-    //scaleFactor_ = ranges_[range]*1e-12 * FREQUENCY / (1.0 * 1e6)
-    //              / MAX_COUNTS / (double)valuesPerRead;
     asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
         "%s::%s scaleFactor=%e\n", driverName, functionName, scaleFactor_);
     return asynSuccess;
@@ -1465,16 +1334,14 @@ asynStatus drvBS_EM::readStatus()
     double sampleTime, averagingTime;
     static const char *functionName = "getStatus";
     
-    ///Fill in with either resonable values or the parameter values
+    //Fill in with either resonable values or the parameter values
     
     getIntegerParam(P_Range, &range);
     setIntegerParam(P_Range, range);
     valuesPerRead = 1;
     setIntegerParam(P_ValuesPerRead, valuesPerRead);
     getDoubleParam(P_IntegrationTime, &period);
-    ///
-    printf("Integration time %f.\n", period);
-    fflush(stdout);
+    
     setDoubleParam(P_IntegrationTime, period);
     sampleTime = period*valuesPerRead;
     getIntegerParam(P_PingPong, &pingPong);
@@ -1485,8 +1352,7 @@ asynStatus drvBS_EM::readStatus()
     getDoubleParam(P_AveragingTime, &averagingTime);
     numAverage = (int)((averagingTime / sampleTime) + 0.5);
     setIntegerParam(P_NumAverage, numAverage);
-    ///
-    printf("Number averaging: %i.\n", numAverage);
+
     return asynSuccess;
 }
 
