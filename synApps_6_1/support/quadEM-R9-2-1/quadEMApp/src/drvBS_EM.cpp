@@ -40,6 +40,7 @@
 //XXX TODO Change according to hardware
 #define MIN_INTEGRATION_TIME 810e-6
 #define MAX_INTEGRATION_TIME 1.0
+#define CLK_PERIOD 66.66e-9
 #define FREQUENCY 1e6
 // 2^20 is maximum counts for 20-bit ADC
 #define MAX_COUNTS ((0xFFFFF-0x01000)*1.0)
@@ -496,6 +497,7 @@ asynStatus drvBS_EM::readResponse()
   read_state = kRead_Header;
   unsigned short bb_len;
   
+  
   while (1)			// Loop until we timeout
     {
       //TODO Maybe move this outside the loop
@@ -528,7 +530,8 @@ asynStatus drvBS_EM::readResponse()
 		}
 	      else if ((strcmp(inString_, "wr") == 0) ||
 		       (strcmp(inString_, "bc") == 0) ||
-		       (strcmp(inString_, "bs") == 0)
+		       (strcmp(inString_, "bs") == 0) ||
+		       (strcmp(inString_, "rr") == 0)
 		       )
 		{
 		  read_state = kRead_Cmd_Payload;
@@ -557,7 +560,7 @@ asynStatus drvBS_EM::readResponse()
 	}
 
       if (read_state == kRead_Cmd_Payload)
-	{
+	{ 
 	  while(1)
 	    {
 	      status = pasynOctetSyncIO->read(pasynUserTCPCommand_, inString_+byte_ctr, 1, BYTE_TIMEOUT,
@@ -572,7 +575,42 @@ asynStatus drvBS_EM::readResponse()
 	      if (inString_[byte_ctr] == '\n') // Found end of response
 		{
 		  read_state = kRead_Cmd_Payload_Done;
+		  int reg_val, reg_num;
+		  int num_parsed;
+		  char response_status[3]; // Need to hold and "OK"
+		  
 		  /// TODO Do something with the payload maybe
+		  //At this point, our response should now have a good pattern
+		  ///DEBUGGING
+		  printf("Full command string: \"%s\"\n", inString_);
+		  fflush(stdout);
+		  num_parsed = sscanf(inString_, "rr %i %i ", &reg_num, &reg_val);
+		  ///FIXME The next bit will be a bit overly verbose for debugging
+		  if ((num_parsed == 2))
+		    // Matched pattern
+		    /// TODO Get OK from Qt?
+		    
+		    {
+		      if (reg_num == 3) // Range
+			{
+			  printf("New range value: %i\n", reg_val);
+			  setIntegerParam(P_Range, reg_val);
+			  computeScaleFactor();
+			}
+		      else if (reg_num == 1)
+			{
+			  ///TODO Warn on invalid time?
+			  double time_val;
+			  time_val = (CLK_PERIOD*reg_val)+MIN_INTEGRATION_TIME;
+			  printf("New Integration Time: %f\n", time_val);
+			  setDoubleParam(P_IntegrationTime, time_val);
+			  computeScaleFactor();
+			}
+		      else if (reg_num == 2)
+			{
+			  ///TODO Do I want to handle this?
+			}
+		    }
 		  break;
 		}
 
@@ -1072,7 +1110,7 @@ asynStatus drvBS_EM::setIntegrationTime(epicsFloat64 value)
         setDoubleParam(P_IntegrationTime, value);
     }
     ///XXX TODO Check return code
-    time_scale_num = (value-MIN_INTEGRATION_TIME)/(66.6e-9);
+    time_scale_num = (value-MIN_INTEGRATION_TIME)/(CLK_PERIOD);
     epicsSnprintf(outString_, sizeof(outString_), "wr 1 %d\r\n", time_scale_num);
     status = writeReadMeter();
     epicsSnprintf(outString_, sizeof(outString_), "wr 2 %d\r\n", time_scale_num);
@@ -1185,7 +1223,7 @@ void drvBS_EM::pvCallback(unsigned int *reg_pair)
     val_double = reg_val/1000.0;
     setDoubleParam(P_Fdbk_CutOutHyst, val_double);
     break;
-  case 230: //Calibration is computed manually by IOC, so just swallow them
+  case 230: //Read all calibrations from Qt
   case 231:
   case 232:
   case 233:
@@ -1193,6 +1231,16 @@ void drvBS_EM::pvCallback(unsigned int *reg_pair)
   case 235:
   case 236:
   case 237:
+    val_int = *((int *)&reg_val); // Cast to int from unsigned
+    val_double = val_int/10000.0; // Scale appropriately
+    if (reg_num < 234)		  // A slope variable
+      {
+	cal_slope_[reg_num-230] = val_double;
+      }
+    else			// An offset variable
+      {
+	cal_offset_[reg_num-234] = val_double;
+      }
     break;
   case 239:
     val_double = reg_val/scale_factor;

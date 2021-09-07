@@ -612,6 +612,14 @@ record(ao, "$(P)$(R)IntegrationTime")
 {
 	field(VAL, "0.04")
 	field(PINI, "YES")
+	info(asyn:READBACK,"1")
+}
+
+# Range override
+
+record(mbbo, "$(P)$(R)Range")
+{
+	info(asyn:READBACK,"1")
 }
 
 # Maximum Current Computation
