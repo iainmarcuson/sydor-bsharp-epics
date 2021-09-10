@@ -638,8 +638,11 @@ record(dfanout, "$(P)$(R)DF_MaxI")
 {
 	field(DESC, "Max current dfanout")
 	field(DOL, "$(P)$(R)MaxCurrent_RBV")
-	field(OMSL, "closed loop")
+	field(OMSL, "closed_loop")
 	field(OUTA, "$(P)$(R)Current1:MeanValue_RBV.HOPR")
+	field(OUTB, "$(P)$(R)Current2:MeanValue_RBV.HOPR")
+	field(OUTC, "$(P)$(R)Current3:MeanValue_RBV.HOPR")
+	field(OUTD, "$(P)$(R)Current4:MeanValue_RBV.HOPR")
 }
 
 record(ai, "$(P)$(R)Current1:MeanValue_RBV")

@@ -1208,11 +1208,11 @@ void drvBS_EM::pvCallback(unsigned int *reg_pair)
     setDoubleParam(P_Fdbk_Y_VOff, val_double);
     break;
   case 221:
-    val_double = reg_val/1000.0;
+    val_double = reg_val/10000.0;
     setDoubleParam(P_Fdbk_CutOutThresh, val_double);
     break;
   case 222:
-    val_double = reg_val/1000.0;
+    val_double = reg_val/10000.0;
     setDoubleParam(P_Fdbk_CutOutHyst, val_double);
     break;
   case 230: //Read all calibrations from Qt
