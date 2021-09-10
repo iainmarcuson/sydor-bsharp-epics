@@ -38,9 +38,9 @@
 #define DATA_PORT       5757
 #define BROADCAST_PORT 37747
 //XXX TODO Change according to hardware
-#define MIN_INTEGRATION_TIME 810
-#define MAX_INTEGRATION_TIME 1000000
-#define CLK_PERIOD 66.66
+#define MIN_INTEGRATION_TIME 810e-6
+#define MAX_INTEGRATION_TIME 1.0
+#define CLK_PERIOD 66.66e-9
 #define FREQUENCY 1e6
 // 2^20 is maximum counts for 20-bit ADC
 #define MAX_COUNTS ((0xFFFFF-0x01000)*1.0)
@@ -278,7 +278,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     //Parameters to set
     setIntegerParam(P_Range, 0);
     setIntegerParam(P_ValuesPerRead, 5);
-    setDoubleParam(P_IntegrationTime, 810);
+    setDoubleParam(P_IntegrationTime, 810e-6);
     setDoubleParam(P_SampleTime, 20e-6);
     setIntegerParam(P_NumAverage, 25);
 
@@ -1332,8 +1332,6 @@ void drvBS_EM::pvCallback(unsigned int *reg_pair)
     getIntegerParam(P_ValuesPerRead,  &valuesPerRead);
     getIntegerParam(P_Range,          &range);
     getDoubleParam(P_IntegrationTime, &integrationTime);
-
-    integrationTime = integrationTime/1e6; // Integration time PV is usec
 
     scaleFactor_ = ranges_[range]*1e-12 * FREQUENCY / (integrationTime * 1e6)
                   / MAX_COUNTS / (double)valuesPerRead;
