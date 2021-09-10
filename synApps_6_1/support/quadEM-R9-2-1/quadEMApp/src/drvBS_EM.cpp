@@ -38,13 +38,14 @@
 #define DATA_PORT       5757
 #define BROADCAST_PORT 37747
 //XXX TODO Change according to hardware
-#define MIN_INTEGRATION_TIME 810e-6
-#define MAX_INTEGRATION_TIME 1.0
-#define CLK_PERIOD 66.66e-9
+#define MIN_INTEGRATION_TIME 810
+#define MAX_INTEGRATION_TIME 1000000
+#define CLK_PERIOD 66.66
 #define FREQUENCY 1e6
 // 2^20 is maximum counts for 20-bit ADC
 #define MAX_COUNTS ((0xFFFFF-0x01000)*1.0)
 #define ADC_OFFSET 0x01000
+#define NUM_RANGES 8
 
 const int PRINT_RAW_DATA = 0;
 
@@ -113,6 +114,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     char tempString[256];
     const char *cal_filename = "calibration.ini";
     FILE *cal_file;
+    int i;
     
     numModules_ = 0;
     moduleID_ = moduleID;
@@ -195,29 +197,19 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 	fflush(stdout);
       }
 
-    cal_file = fopen(cal_filename, "r");
-    if (cal_file == NULL)	// Assume there is no calibration file
+    //Calibration values will be overridden later, so populate with no-ops
+    for (i=0; i<NUM_RANGES; i++)
       {
-	int range_idx;
-
-	printf("Error: no calibration file detected; rerun iocrun.\n");
-	fflush(stdout);
-	exit(1);
-      }
-    else		      // A calibration file was found
-      {
-	int range_idx, channel_idx;
-	parse_cal_file(cal_file);
-	for (range_idx = 0; range_idx<MAX_RANGES; range_idx++)
+	int channel_idx;
+	cal_values_[i].cal_present = 1;
+	for (channel_idx = 0; channel_idx <4; channel_idx++)
 	  {
-	    printf("Calibration %02i, present %i\n", range_idx, cal_values_[range_idx].cal_present);
-	    for (channel_idx = 0; channel_idx < 4; channel_idx++)
-	      {
-		printf("Channel %i Slope %8f Offset %8f\n", channel_idx, cal_values_[range_idx].cal_slope[channel_idx], cal_values_[range_idx].cal_offset[channel_idx]);
-	      }
+	    cal_values_[i].cal_slope[channel_idx] = 1.0;
+	    cal_values_[i].cal_offset[channel_idx] = 0.0;
 	  }
-	fflush(stdout);
       }
+    num_cals_ = NUM_RANGES;
+    
     
     //Create the parameters for use with PID
     createParam(P_PIDEnableString, asynParamInt32, &P_FdbkEnable);
@@ -286,7 +278,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     //Parameters to set
     setIntegerParam(P_Range, 0);
     setIntegerParam(P_ValuesPerRead, 5);
-    setDoubleParam(P_IntegrationTime, 810e-6);
+    setDoubleParam(P_IntegrationTime, 810);
     setDoubleParam(P_SampleTime, 20e-6);
     setIntegerParam(P_NumAverage, 25);
 
@@ -1340,6 +1332,8 @@ void drvBS_EM::pvCallback(unsigned int *reg_pair)
     getIntegerParam(P_ValuesPerRead,  &valuesPerRead);
     getIntegerParam(P_Range,          &range);
     getDoubleParam(P_IntegrationTime, &integrationTime);
+
+    integrationTime = integrationTime/1e6; // Integration time PV is usec
 
     scaleFactor_ = ranges_[range]*1e-12 * FREQUENCY / (integrationTime * 1e6)
                   / MAX_COUNTS / (double)valuesPerRead;
