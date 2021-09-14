@@ -523,7 +523,8 @@ asynStatus drvBS_EM::readResponse()
 	      else if ((strcmp(inString_, "wr") == 0) ||
 		       (strcmp(inString_, "bc") == 0) ||
 		       (strcmp(inString_, "bs") == 0) ||
-		       (strcmp(inString_, "rr") == 0)
+		       (strcmp(inString_, "rr") == 0) ||
+		       (strcmp(inString_, "tr") == 0)
 		       )
 		{
 		  read_state = kRead_Cmd_Payload;
