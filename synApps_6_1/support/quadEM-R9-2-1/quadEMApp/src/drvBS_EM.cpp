@@ -99,8 +99,8 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 	      {param_bit, 220, 0x4, reg_int, 0, 0, 0, 0}, //13 PID enable
 		{param_bit, 220, 0x2, reg_int, 0, 0, 0, 0}, //14 Cutout enable
 		  {param_bit, 220, 0x1, reg_int, 0, 0, 0, 0}, //15 Auto reenable
-		    {param_reg, 221, 0xFFFFFFFF, reg_int, 0, 1e6, 0, (int) 1e9}, //16 Cutout threshold
-		      {param_reg, 222, 0xFFFFFFFF, reg_int, 0, 1e6, 0, (int) 1e9}, //17 Cutout reenable hysteresis
+		    {param_reg, 221, 0xFFFFFFFF, reg_int, 0, 1e5, 0, (int) 1e9}, //16 Cutout threshold
+		      {param_reg, 222, 0xFFFFFFFF, reg_int, 0, 1e5, 0, (int) 1e9}, //17 Cutout reenable hysteresis
 			{param_reg, 239, 0xFFFFFFFF, reg_int, 0, 1e5, 0, (int) 1e9}, //18 XXX FIXME I-to-V value?
 			  {param_bit, 240, 0x8, reg_int, 0, 0, 0, 0}, //19 External trigger
   {param_bit, 240, 0x10, reg_int, 0, 0, 0, 0}, //20 PID Inhibit
