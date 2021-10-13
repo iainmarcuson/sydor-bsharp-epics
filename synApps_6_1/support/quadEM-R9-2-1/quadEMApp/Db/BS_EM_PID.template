@@ -615,6 +615,11 @@ record(ao, "$(P)$(R)IntegrationTime")
 	info(asyn:READBACK,"1")
 }
 
+record(ai, "$(P)$(R)IntegrationTime_RBV")
+{
+	field(FLNK, "$(P)$(R)S2MIntegTime")
+}
+
 # Range override
 
 record(mbbo, "$(P)$(R)Range")
@@ -668,4 +673,47 @@ record(longin, "$(P)$(R)PID_Refresh_RBV")
 	field(DESC, "PID X Refresh")
 	field(DTYP, "asynInt32")
 	field(INP, "@asyn($(PORT) 0)PID_REFRESH")
+}
+
+#Integration Time Scaling
+
+record(ao, "$(P)$(R)IntegTime_ms")
+{
+	field(DESC, "Integration time in ms")
+	field(EGU, "ms")
+	field(VAL, "0.810")
+	field(PREC, "3")
+	field(PINI, "YES")
+	field(OUT, "$(P)$(R)M2SIntegTime")
+	field(FLNK, "$(P)$(R)M2SIntegTime")
+}
+
+record(calc, "$(P)$(R)M2SIntegTime")
+{
+	field(INPA, "$(P)$(R)IntegTime_ms")
+	field(CALC, "A/1000.0")
+	field(FLNK, "$(P)$(R)M2SOut.PROC")
+}
+
+record(ao, "$(P)$(R)M2SOut")
+{
+	field(DOL, "$(P)$(R)M2SIntegTime")
+	field(OMSL, "closed_loop")
+	field(OUT, "$(P)$(R)IntegrationTime")
+	field(FLNK, "$(P)$(R)IntegrationTime")
+}
+
+record(calc, "$(P)$(R)S2MIntegTime")
+{
+	field(INPA, "$(P)$(R)IntegrationTime_RBV")
+	field(CALC, "A*1000.0")
+	field(FLNK, "$(P)$(R)S2MOut")
+#	field(SCAN, "1 second")
+}
+
+record(ao, "$(P)$(R)S2MOut")
+{
+	field(DOL, "$(P)$(R)S2MIntegTime")
+	field(OMSL, "closed_loop")
+	field(OUT, "$(P)$(R)IntegTime_ms")
 }
