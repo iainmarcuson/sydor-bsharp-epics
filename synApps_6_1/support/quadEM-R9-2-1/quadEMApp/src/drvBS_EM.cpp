@@ -265,6 +265,9 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
 //    drvQuadEM::reset();
 //    unlock();
 
+    /// XXX DEBUGGING sleep to attach gdb
+    ///epicsThreadSleep(30.0);
+    
     /* Create the thread that reads the meter */
     status = (asynStatus)(epicsThreadCreate("drvBS_EMTask",
                           epicsThreadPriorityMedium,
@@ -277,12 +280,42 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     }
 
     //Parameters to set
-    setIntegerParam(P_Range, 0);
+    /// XXX Commented out for EPICS Bumpless setIntegerParam(P_Range, 0);
+    /// XXX Try with dummy value
+    /*{
+      int p_range_val;
+      setIntegerParam(P_Range, 8);
+      printf("Setting P_Range for uninit.\n");
+      getIntegerParam(P_Range, &p_range_val);
+      printf("P_Range is %i.\n", p_range_val);
+      fflush(stdout);
+      }*/
+      
     setIntegerParam(P_ValuesPerRead, 5);
-    setDoubleParam(P_IntegrationTime, 810e-6);
+    /// XXX Commented out for EPICS Bumpless setDoubleParam(P_IntegrationTime, 810e-6);
     setDoubleParam(P_SampleTime, 20e-6);
     setIntegerParam(P_NumAverage, 25);
 
+    /// XXX Testing a query of all parameters on startup
+    {
+      int reg_idx;
+
+      // First, query the other registers
+      for (reg_idx = 1; reg_idx<=3; reg_idx++)
+	{
+	  ///XXX DEBUGGING
+	  printf("Init query of reg %i.\n", reg_idx);
+	  epicsSnprintf(outString_, sizeof(outString_), "rr %i\r\n", reg_idx);
+	  writeReadMeter();
+	  fflush(stdout);
+	}
+
+      // Then do a tr of the PID registers
+      //epicsSnprintf(outString_, sizeof(outString_), "tr 200 241\r\n");
+      ///writeReadMeter();
+
+    }
+    
 
     callParamCallbacks();
 }
@@ -394,7 +427,9 @@ asynStatus drvBS_EM::findModule()
     }
     pasynOctetSyncIO->setInputEos(pasynUserTCPData_, "\n", 1);
 
+    
     return asynSuccess;
+    
 }
 
 void drvBS_EM::process_reg(int reg_lookup, double value)
@@ -464,6 +499,10 @@ asynStatus drvBS_EM::writeReadMeter()
 
   if (strlen(outString_) != 0) //Actual command
     {
+      ///XXX DEBUGGING
+      printf("OutCommand: %s", outString_);
+      fflush(stdout);
+      
       status = pasynOctetSyncIO->write(pasynUserTCPCommand_, outString_, strlen(outString_), NSLS_EM_TIMEOUT, &nwrite); //Now write the command
     }
   else
@@ -1128,9 +1167,14 @@ asynStatus drvBS_EM::setIntegrationTime(epicsFloat64 value)
 asynStatus drvBS_EM::setRange(epicsInt32 value) 
 {
     asynStatus status;
-    
-    epicsSnprintf(outString_, sizeof(outString_), "wr 3 %d\r\n", value);
-    status = writeReadMeter();
+    ///XXX DEBUGGING
+    printf("setRange() with value %i.\n", value);
+    fflush(stdout);
+    if (value > -1) //-1 is unitialized, so don't send if invald
+      {
+	epicsSnprintf(outString_, sizeof(outString_), "wr 3 %d\r\n", value);
+	status = writeReadMeter();
+      }
     computeScaleFactor();
     return status;
 }
