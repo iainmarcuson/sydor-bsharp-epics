@@ -624,20 +624,15 @@ record(ai, "$(P)$(R)IntegrationTime_RBV")
 
 record(mbbo, "$(P)$(R)Range")
 {
-#	field(EIVL, "-1")
-#	field(EIST, "Unitialized")
-#	field(VAL, "8")
 	field(PINI, "NO")
 	info(asyn:READBACK,"1")
 }
 
 record(mbbi, "$(P)$(R)Range_RBV")
 {
-#	field(EIVL, "-1")
-#	field(EIST, "Unitialized")
-#	field(VAL, "8")
-	#XXX field(PINI, "YES")
+	field(VAL, "8")
 }
+
 record(mbbo, "$(P)$(R)RangeSimple")
 {
 	field(PINI, "NO")
