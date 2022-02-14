@@ -607,7 +607,8 @@ asynStatus drvBS_EM::readResponse()
 		  fflush(stdout);
 		  num_parsed = sscanf(inString_, "rr %i %i ", &reg_num, &reg_val);
 		  ///FIXME The next bit will be a bit overly verbose for debugging
-		  if ((num_parsed == 2))
+
+		  if ((num_parsed == 2) & (reg_num != 999)) // 999 is name and handled specially
 		    // Matched pattern
 		    /// TODO Get OK from Qt?
 		    
@@ -632,6 +633,12 @@ asynStatus drvBS_EM::readResponse()
 			  ///TODO Do I want to handle this?
 			}
 		    }
+		  else if ((num_parsed >= 1) && (reg_num == 999)) //Reading the calibration name
+		    {
+		      sscanf(inString_, " rr 999 %s", calName_); //Know rr and reg 999
+		      setStringParam(P_CalName, calName_);
+		    }
+		      
 		  break;
 		}
 

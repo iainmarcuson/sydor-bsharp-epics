@@ -176,6 +176,7 @@ private:
     char ipAddress_[MAX_IPNAME_LEN];
     char outString_[MAX_COMMAND_LEN];
     char inString_[MAX_COMMAND_LEN];
+  char calName_[MAX_COMMAND_LEN];
     double acqFactor_;		/* Scaling factor for raw-to-current 
 				   conversion from acquisition parameters */
     double adcFactor_;		/* Scaling factor from ADC parameters */
