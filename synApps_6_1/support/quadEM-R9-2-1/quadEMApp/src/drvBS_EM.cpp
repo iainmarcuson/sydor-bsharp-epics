@@ -627,6 +627,7 @@ asynStatus drvBS_EM::readResponse()
 			  printf("New Integration Time: %f\n", time_val);
 			  setDoubleParam(P_IntegrationTime, time_val);
 			  computeScaleFactor();
+			  readStatus();
 			}
 		      else if (reg_num == 2)
 			{
@@ -804,6 +805,9 @@ void drvBS_EM::readThread(void)
 	    pasynOctet->flush(octetPvt, pasynUser);
 	    pasynManager->unlockPort(pasynUser);
 	    lock();
+	    /// DEBUGGING XXX
+	    printf("Invalid header in data payload.  Flushing.\n");
+	    fflush(stdout);
 	    continue;		// Try again next packet
 	  }
 	///XXX TODO Note that the checksum is not currently transmitted, so the +1 that should be there has been turne into a +0 for now
