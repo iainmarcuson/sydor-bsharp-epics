@@ -244,6 +244,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     createParam(P_MaxCurrentString, asynParamFloat64, &P_MaxCurrent);
 
     createParam(P_PIDRefreshString, asynParamInt32, &P_PIDRefresh);
+    createParam(P_RefreshAllString, asynParamInt32, &P_RefreshAll);
     
     //Set the PID register parameters
     /*pidRegData_ = {
@@ -290,7 +291,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
       // First, query the other registers
       for (reg_idx = 1; reg_idx<=3; reg_idx++)
 	{
-	  epicsSnprintf(outString_, sizeof(outString_), "rr %i\r\n", reg_idx);
+	  epicsSnprintf(outString_, sizeof(outString_), "rr %i\n", reg_idx);
 	  writeReadMeter();
 	}
 
@@ -300,7 +301,6 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
       ///writeReadMeter();
 
     }
-    
 
     callParamCallbacks();
 }
@@ -959,6 +959,20 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
       (void)epicsEventWait(writeCmdEvent_);
       bzero(outString_, sizeof(outString_));
       sprintf(outString_, "wr 999 1234\r\n");
+      status = writeReadMeter(); // The write gets the calibration name and reads all pending traffic in the command receive queue.
+          
+    }
+  else if (function == P_RefreshAll)
+    {
+      // Do queries of integration time, range, and all PID parameters.
+      // This is a HEAVY operation, so a periodic scan in not appropriate.
+    
+      sprintf(outString_, "tr 200 241\n"); // Read the PID parameters
+      status = writeReadMeter();
+      sprintf(outString_, "rr 1\n"); // Read the integration time
+      status = writeReadMeter();
+      /// XXX Register 2 is not handled elsewhere, being the same as Reg 1
+      sprintf(outString_, "rr 3\n");
       status = writeReadMeter();
     }
   else if (function < P_FdbkEnable)	// Assume function not a BSharp one

@@ -686,6 +686,25 @@ record(longin, "$(P)$(R)PID_Refresh_RBV")
 	field(INP, "@asyn($(PORT) 0)PID_REFRESH")
 }
 
+# Record to do a full refresh
+
+record(longout, "$(P)$(R)RefreshAll")
+{
+	field(DESC, "Refresh parameters")
+	field(DTYP, "asynInt32")
+	field(OUT, "@asyn($(PORT) 0)REFRESH_ALL")
+	info(asyn:READBACK,"1")
+	field(VAL, "0")
+}
+
+record(longin, "$(P)$(R)RefreshAll_RBV")
+{
+	field(DESC, "Refresh parameters")
+	field(DTYP, "asynInt32")
+	field(INP, "@asyn($(PORT) 0)REFRESH_ALL")
+}
+
+
 #Integration Time Scaling
 
 record(ao, "$(P)$(R)IntegTime_ms")

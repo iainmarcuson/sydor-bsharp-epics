@@ -52,6 +52,7 @@
 #define P_MaxCurrentString "I_MAX" /* asynFloat64 */
 
 #define P_PIDRefreshString "PID_REFRESH"
+#define P_RefreshAllString "REFRESH_ALL"
 
 typedef struct {
     int moduleID;
@@ -144,6 +145,7 @@ protected:
   int P_MaxCurrent;
 
   int P_PIDRefresh;
+  int P_RefreshAll;
   
     /* These are the methods we implement from quadEM */
     virtual asynStatus setAcquire(epicsInt32 value);

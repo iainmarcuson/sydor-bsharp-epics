@@ -369,8 +369,8 @@ $(pv_value)</tooltip>
         <width>129</width>
         <wrap_words>false</wrap_words>
         <wuid>df40d9e:14fe0fce7aa:-6b7d</wuid>
-        <x>504</x>
-        <y>628</y>
+        <x>423</x>
+        <y>626</y>
       </widget>
       <widget typeId="org.csstudio.opibuilder.widgets.BoolButton" version="1.0.0">
         <actions hook="false" hook_all="false" />
@@ -431,8 +431,8 @@ $(pv_value)</tooltip>
         <widget_type>Boolean Button</widget_type>
         <width>39</width>
         <wuid>df40d9e:14fe0fce7aa:-7942</wuid>
-        <x>639</x>
-        <y>634</y>
+        <x>558</x>
+        <y>632</y>
       </widget>
       <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
         <actions hook="false" hook_all="false" />
@@ -4740,6 +4740,60 @@ $(pv_value)</tooltip>
         <wuid>-14e6aaa8:17ef9eb76a1:-7d25</wuid>
         <x>79</x>
         <y>594</y>
+      </widget>
+      <widget typeId="org.csstudio.opibuilder.widgets.ActionButton" version="2.0.0">
+        <actions hook="false" hook_all="false">
+          <action type="WRITE_PV">
+            <pv_name>$(P)$(R)RefreshAll.PROC</pv_name>
+            <value>1</value>
+            <timeout>10</timeout>
+            <confirm_message></confirm_message>
+            <description></description>
+          </action>
+        </actions>
+        <alarm_pulsing>false</alarm_pulsing>
+        <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+        <background_color>
+          <color red="240" green="240" blue="240" />
+        </background_color>
+        <border_alarm_sensitive>false</border_alarm_sensitive>
+        <border_color>
+          <color red="0" green="128" blue="255" />
+        </border_color>
+        <border_style>0</border_style>
+        <border_width>1</border_width>
+        <enabled>true</enabled>
+        <font>
+          <opifont.name fontName="Sans" height="10" style="0" pixels="false">Default</opifont.name>
+        </font>
+        <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+        <foreground_color>
+          <color red="0" green="0" blue="0" />
+        </foreground_color>
+        <height>40</height>
+        <image></image>
+        <name>Action Button_1</name>
+        <push_action_index>0</push_action_index>
+        <pv_name></pv_name>
+        <pv_value />
+        <rules />
+        <scale_options>
+          <width_scalable>true</width_scalable>
+          <height_scalable>true</height_scalable>
+          <keep_wh_ratio>false</keep_wh_ratio>
+        </scale_options>
+        <scripts />
+        <style>0</style>
+        <text>Refresh All</text>
+        <toggle_button>false</toggle_button>
+        <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+        <visible>true</visible>
+        <widget_type>Action Button</widget_type>
+        <width>80</width>
+        <wuid>-14e6aaa8:17ef9eb76a1:-7b64</wuid>
+        <x>653</x>
+        <y>619</y>
       </widget>
     </widget>
     <widget typeId="org.csstudio.opibuilder.widgets.groupingContainer" version="1.0.0">
