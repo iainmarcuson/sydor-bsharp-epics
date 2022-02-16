@@ -964,7 +964,8 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
       bzero(outString_, sizeof(outString_));
       sprintf(outString_, "wr 999 1234\r\n");
       status = writeReadMeter(); // The write gets the calibration name and reads all pending traffic in the command receive queue.
-          
+      // Refresh scale factor
+      computeScaleFactor();
     }
   else if (function == P_RefreshAll)
     {
