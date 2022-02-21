@@ -283,6 +283,7 @@ drvBS_EM::drvBS_EM(const char *portName, const char *broadcastAddress, int modul
     setIntegerParam(P_ValuesPerRead, 5);
     setDoubleParam(P_SampleTime, 20e-6);
     setIntegerParam(P_NumAverage, 25);
+    setIntegerParam(P_PingPong, 2); // Always reading two samples
 
     /// Query all parameters on startup
     {
