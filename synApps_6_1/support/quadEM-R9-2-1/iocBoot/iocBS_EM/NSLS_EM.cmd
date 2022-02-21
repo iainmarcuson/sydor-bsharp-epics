@@ -73,7 +73,6 @@ epicsThreadSleep 5
 dbpf $(PREFIX)$(RECORD)TS:TSAcquire 1
 
 #Set Gain to high (Needs to be set last in the sequence)
-dbpf $(PREFIX)$(RECORD)RangeSimple 0
 
 # save settings every thirty seconds
 create_monitor_set("auto_settings.req",30,"P=$(PREFIX), R=$(RECORD)")
