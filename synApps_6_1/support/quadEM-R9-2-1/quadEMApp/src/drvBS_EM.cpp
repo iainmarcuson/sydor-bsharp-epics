@@ -613,7 +613,7 @@ asynStatus drvBS_EM::readResponse()
 		    {
 		      if (reg_num == 3) // Range
 			{
-			  printf("New range value: %i\n", reg_val);
+                          printf("New range value: %i\n", reg_val);
 			  setIntegerParam(P_Range, reg_val);
 			  computeScaleFactor();
 			}
@@ -912,7 +912,7 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
   // Fetch the parameter string name
   getParamName(function, &paramName);
 
-  printf("In writeInt32()\n");
+  //printf("In writeInt32()\n");
 
   reg_lookup = -1;
   if (function == P_FdbkEnable)
@@ -977,10 +977,10 @@ asynStatus drvBS_EM::writeInt32(asynUser *pasynUser, epicsInt32 value)
     }
   else if (function < P_FdbkEnable)	// Assume function not a BSharp one
     {
-      printf("writeINt falling through.\n");
+        //printf("writeINt falling through.\n");
       if (function == P_Acquire)
 	{
-	  printf("writing an acquire in fallthrough\n");
+            //printf("writing an acquire in fallthrough\n");
 	}
       fflush(stdout);
       drvQuadEM::writeInt32(pasynUser, value);
@@ -1081,8 +1081,8 @@ asynStatus drvBS_EM::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     {
       (void)epicsEventWait(writeCmdEvent_);
       process_reg(reg_lookup, value);	// Get the command string for the register lookup set
-      printf("%s\n", outString_);
-      fflush(stdout);
+      //printf("%s\n", outString_);
+      //fflush(stdout);
       status = writeReadMeter();
     }
 
