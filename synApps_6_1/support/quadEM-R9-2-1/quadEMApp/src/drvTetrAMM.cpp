@@ -1,13 +1,6 @@
-/*
- * drvTetrAMM.cpp
- * 
- * Asyn driver that inherits from the drvQuadEM class to control 
- * the CaenEls TetrAMM 4-channel picoammeter
- *
- * Author: Mark Rivers
- *
- * Created July 14, 2015
- */
+/* * drvTetrAMM.cpp * * Asyn driver that inherits from the drvQuadEM 
+ class to control * the CaenEls TetrAMM 4-channel picoammeter * * 
+ Author: Mark Rivers * * Created July 14, 2015 */
 
 #include <stdlib.h>
 #include <string.h>
@@ -188,7 +181,7 @@ void drvTetrAMM::readThread(void)
     epicsFloat64 *f64Data = (epicsFloat64 *)charData;
     long long *i64Data = (long long *)charData;
     unsigned char *pc;
-    long long lastValue;
+    unsigned long long lastValue;
     char ASCIIData[ASCII_BUFFER_SIZE];
     char *inPtr;
     size_t nRequested;
